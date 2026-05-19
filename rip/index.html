@@ -34,40 +34,29 @@
 </script>
 </head>
 <body class="spaniel-app">
-<!-- spanielwallet-banner:start -->
-<div class="sw-banner" role="region" aria-label="Browser extension">
-  <div class="sw-banner-text">
-    <strong>New here?</strong> Install the Spaniel Wallet browser extension to connect to any Solana dApp.
-  </div>
-  <a class="sw-banner-cta" href="/extension/">Install →</a>
-</div>
+<!-- spanielwallet-home-link:start -->
+<a class="sw-home-link" href="/" aria-label="Spaniel Wallet home">← Home</a>
 <style>
-  .sw-banner {
-    background: linear-gradient(90deg, rgba(240,165,43,0.13), rgba(168,90,6,0.08));
-    border-bottom: 1px solid rgba(240,165,43,0.30);
-    color: #ffe0b1;
-    padding: 7px 14px;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-  .sw-banner-text { color: #ffe0b1; }
-  .sw-banner-cta {
-    color: #ffe0b1;
-    text-decoration: none;
-    background: rgba(240,165,43,0.18);
-    border: 1px solid rgba(240,165,43,0.40);
-    padding: 3px 10px;
+  .sw-home-link {
+    position: fixed;
+    top: 8px;
+    left: 10px;
+    z-index: 1000;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 224, 177, 0.85);
+    background: rgba(20, 16, 22, 0.85);
+    padding: 4px 10px;
     border-radius: 999px;
-    font-weight: 600;
+    border: 1px solid rgba(240, 165, 43, 0.35);
+    text-decoration: none;
+    backdrop-filter: blur(4px);
   }
-  .sw-banner-cta:hover { background: rgba(240,165,43,0.32); color: #fff; }
+  .sw-home-link:hover { background: rgba(40, 30, 36, 0.95); color: #fff; }
+  @media (max-width: 480px) { .sw-home-link { top: 6px; left: 6px; padding: 3px 8px; font-size: 11px; } }
 </style>
-<!-- spanielwallet-banner:end -->
-
+<!-- spanielwallet-home-link:end -->
 <div id="appRoot" class="app-shell">
   <header class="app-header">
     <a class="app-brand" href="/">

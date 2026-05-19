@@ -91,8 +91,8 @@ function currentRoute() {
   const path = location.pathname.replace(/\/+$/, '');
   const tail = path.split('/').filter(Boolean);
   // /app or /  → wallet (default)
-  if (tail.length <= 1) return 'wallet';
-  const candidate = tail[1];
+  if (tail.length === 0) return 'wallet';
+  const candidate = tail[0];
   return candidate in ROUTE_LOADERS ? candidate : 'wallet';
 }
 

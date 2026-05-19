@@ -2,98 +2,466 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#08070a">
-<meta name="description" content="Spaniel Syndicate Wallet — a first-party, non-custodial Solana wallet for ripping packs, building your kennel, voting in the Rescue Pool, and battling friends in Spaniel Showdown.">
+<title>Spaniel Wallet — Non-custodial Solana wallet</title>
+<meta name="description" content="Spaniel Wallet is a non-custodial Solana wallet. Open it in any browser, or install the Chrome / Firefox extension to connect to dApps. Your seed phrase never leaves your device.">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Spaniel Wallet">
-<meta http-equiv="Cache-Control" content="no-cache">
-<title>Spaniel Wallet</title>
-
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="canonical" href="https://spanielwallet.com/">
-<link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/style.css?v=20260518-split">
-<link rel="stylesheet" href="/app.css?v=20260518-split">
-
-<script>
-  (function () {
-    var h = location.hostname;
-    if (h === '127.0.0.1' || h === 'localhost' || h.endsWith('.local')) return;
-    var s = document.createElement('script');
-    s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
-    s.defer = true;
-    s.setAttribute('data-cf-beacon', '{"token": "6a64129b5b864f8492f9dad04ec3b631"}');
-    document.head.appendChild(s);
-  })();
-</script>
-</head>
-<body class="spaniel-app">
-<!-- spanielwallet-banner:start -->
-<div class="sw-banner" role="region" aria-label="Browser extension">
-  <div class="sw-banner-text">
-    <strong>New here?</strong> Install the Spaniel Wallet browser extension to connect to any Solana dApp.
-  </div>
-  <a class="sw-banner-cta" href="/extension/">Install →</a>
-</div>
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://spanielwallet.com/">
+<meta property="og:title" content="Spaniel Wallet — Non-custodial Solana wallet">
+<meta property="og:description" content="Open it in any browser, or install the Chrome / Firefox extension. Your seed phrase never leaves your device.">
+<meta property="og:image" content="https://spanielwallet.com/og-cover.png">
+<meta name="twitter:card" content="summary_large_image">
 <style>
-  .sw-banner {
-    background: linear-gradient(90deg, rgba(240,165,43,0.13), rgba(168,90,6,0.08));
-    border-bottom: 1px solid rgba(240,165,43,0.30);
-    color: #ffe0b1;
-    padding: 7px 14px;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
+  :root {
+    color-scheme: dark;
+    --bg: #08070a;
+    --bg-2: #14111a;
+    --bg-3: #1c1924;
+    --bg-4: #25212e;
+    --fg: #f5f3ef;
+    --fg-2: #b5b0a7;
+    --fg-3: #7e7a73;
+    --accent: #f0a52b;
+    --accent-2: #ffc25e;
+    --accent-dark: #a85a06;
+    --accent-glow: rgba(240,165,43,0.45);
+    --success: #5cc46b;
+    --border: #2a2630;
+    --radius: 14px;
+    --mono: ui-monospace, 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
   }
-  .sw-banner-text { color: #ffe0b1; }
-  .sw-banner-cta {
-    color: #ffe0b1;
-    text-decoration: none;
-    background: rgba(240,165,43,0.18);
-    border: 1px solid rgba(240,165,43,0.40);
-    padding: 3px 10px;
-    border-radius: 999px;
-    font-weight: 600;
-  }
-  .sw-banner-cta:hover { background: rgba(240,165,43,0.32); color: #fff; }
-</style>
-<!-- spanielwallet-banner:end -->
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  a { color: var(--accent); }
+  .wrap { max-width: 1140px; margin: 0 auto; padding: 0 22px; }
 
-<div id="appRoot" class="app-shell">
-  <header class="app-header">
-    <a class="app-brand" href="/">
-      <span class="app-brand-line-1">SPANIEL</span>
-      <span class="app-brand-line-2">WALLET</span>
+  /* ─ TOP NAV ─ */
+  header.site {
+    padding: 22px 0 0;
+  }
+  .site-nav { display: flex; align-items: center; justify-content: space-between; }
+  .brand { display: inline-flex; align-items: center; gap: 10px;
+    color: var(--fg); text-decoration: none; font-weight: 800;
+    letter-spacing: 0.04em; font-size: 16px; }
+  .brand-mark { width: 28px; height: 28px; border-radius: 8px;
+    background: radial-gradient(circle at 35% 30%, var(--accent), var(--accent-dark));
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.6) inset, 0 8px 20px var(--accent-glow); }
+  .nav-links { display: flex; gap: 22px; align-items: center; }
+  .nav-links a { color: var(--fg-2); text-decoration: none; font-size: 14px; }
+  .nav-links a:hover { color: var(--fg); }
+  .nav-btn { color: #1a0e02 !important; background: var(--accent);
+    padding: 8px 16px; border-radius: 999px; font-weight: 700; font-size: 14px; }
+  .nav-btn:hover { background: var(--accent-2); }
+  @media (max-width: 600px) { .nav-links a:not(.nav-btn) { display:none; } }
+
+  /* ─ HERO ─ */
+  section.hero { padding: 60px 0 36px; }
+  .hero h1 {
+    margin: 0 0 18px;
+    font-size: clamp(36px, 6.5vw, 64px);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    font-weight: 800;
+  }
+  .hero h1 .accent { color: var(--accent); }
+  .hero p.lede {
+    font-size: clamp(16px, 2.2vw, 19px);
+    color: var(--fg-2);
+    max-width: 640px;
+    margin: 0 0 28px;
+  }
+
+  /* ─ DOWNLOAD CARDS ─ */
+  .downloads {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 760px) {
+    .downloads { grid-template-columns: 1fr 1fr 1fr; }
+  }
+  .dl-card {
+    background: linear-gradient(160deg, var(--bg-2), var(--bg-3));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: transform 180ms, border-color 180ms, box-shadow 180ms;
+    position: relative;
+    overflow: hidden;
+  }
+  .dl-card::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 160px; height: 160px;
+    background: radial-gradient(circle, var(--accent-glow), transparent 65%);
+    opacity: 0.0;
+    transition: opacity 220ms;
+    pointer-events: none;
+  }
+  .dl-card:hover { transform: translateY(-3px); border-color: rgba(240,165,43,0.45);
+    box-shadow: 0 16px 40px -20px var(--accent-glow); }
+  .dl-card:hover::before { opacity: 0.8; }
+  .dl-card .icon { width: 64px; height: 64px; display: block; }
+  .dl-card h2 { margin: 0; font-size: 22px; letter-spacing: -0.01em; }
+  .dl-card p.sub { margin: 0; color: var(--fg-2); font-size: 14px; flex: 1; }
+  .dl-card .dl-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: var(--accent); color: #1a0e02;
+    text-decoration: none;
+    font-weight: 700; font-size: 15px;
+    padding: 12px 18px;
+    border-radius: 10px;
+    transition: background 180ms;
+    margin-top: 4px;
+  }
+  .dl-card .dl-btn:hover { background: var(--accent-2); }
+  .dl-card .meta { color: var(--fg-3); font-size: 12px; margin: 0; letter-spacing: 0.03em; text-transform: uppercase; }
+  .dl-card details { color: var(--fg-2); font-size: 13px; }
+  .dl-card details summary { cursor: pointer; color: var(--fg-2); padding: 4px 0; }
+  .dl-card details summary:hover { color: var(--fg); }
+  .dl-card ol { padding-left: 18px; margin: 8px 0 0; line-height: 1.65; }
+  .dl-card code { background: var(--bg-4); padding: 1px 6px; border-radius: 4px;
+    font-family: var(--mono); font-size: 12px; }
+
+  /* ─ TRUST STRIP ─ */
+  section.trust { padding: 60px 0 30px; }
+  .trust-grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
+  @media (min-width: 720px) { .trust-grid { grid-template-columns: repeat(4, 1fr); } }
+  .trust-item { display: flex; flex-direction: column; gap: 4px; }
+  .trust-item .icon { width: 28px; height: 28px; color: var(--accent); }
+  .trust-item h3 { margin: 0; font-size: 15px; }
+  .trust-item p { margin: 0; color: var(--fg-2); font-size: 13px; }
+
+  /* ─ FEATURES ─ */
+  section.features { padding: 60px 0 40px; border-top: 1px solid var(--border); }
+  .features h2.section-title { margin: 0 0 28px; font-size: clamp(24px, 3vw, 32px); letter-spacing: -0.01em; }
+  .features-grid { display: grid; gap: 18px; grid-template-columns: 1fr; }
+  @media (min-width: 720px) { .features-grid { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 1000px) { .features-grid { grid-template-columns: repeat(3, 1fr); } }
+  .feat {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+  }
+  .feat h3 { margin: 0 0 6px; font-size: 16px; }
+  .feat p { margin: 0; color: var(--fg-2); font-size: 14px; }
+
+  /* ─ FAQ ─ */
+  section.faq { padding: 60px 0 30px; border-top: 1px solid var(--border); }
+  .faq h2.section-title { margin: 0 0 22px; font-size: clamp(24px, 3vw, 32px); letter-spacing: -0.01em; }
+  .qa { background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 18px; margin-bottom: 10px; }
+  .qa summary { cursor: pointer; font-weight: 600; list-style: none; padding: 4px 0; color: var(--fg); }
+  .qa summary::before { content: '+ '; color: var(--accent); font-family: var(--mono); }
+  .qa[open] summary::before { content: '− '; }
+  .qa p { color: var(--fg-2); margin: 8px 0 0; font-size: 14px; line-height: 1.7; }
+
+  /* ─ DISCLOSURE / FOOTER ─ */
+  section.disclosure { padding: 30px 0 0; }
+  .disclosure-box {
+    background: rgba(240,165,43,0.07);
+    border: 1px solid rgba(240,165,43,0.30);
+    border-radius: 12px;
+    padding: 14px 18px;
+    color: #ffd591;
+    font-size: 13px;
+  }
+  footer.site { padding: 50px 0 60px; color: var(--fg-3); font-size: 13px; }
+  footer.site .ft-cols { display: flex; flex-wrap: wrap; gap: 22px; align-items: center; justify-content: space-between; }
+  footer.site a { color: var(--fg-2); text-decoration: none; }
+  footer.site a:hover { color: var(--fg); }
+  footer.site .ft-links { display: flex; flex-wrap: wrap; gap: 22px; }
+  .pulse { display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--success); box-shadow: 0 0 0 0 rgba(92,196,107,0.45);
+    animation: pulse 1.8s infinite; margin-right: 6px; vertical-align: middle; }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(92,196,107,0.55); }
+    70% { box-shadow: 0 0 0 8px rgba(92,196,107,0); }
+    100% { box-shadow: 0 0 0 0 rgba(92,196,107,0); }
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap site-nav">
+    <a class="brand" href="/">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>SPANIEL WALLET</span>
     </a>
-    <div id="appWalletPill" class="app-wallet-pill" aria-live="polite">Loading…</div>
-  </header>
-  <main id="appMain" class="app-main" aria-live="polite">
-    <p class="app-loading">Loading…</p>
-  </main>
-  <nav class="app-tabs" aria-label="Main sections">
-    <a class="app-tab" data-route="wallet"    href="/wallet/">Wallet</a>
-    <a class="app-tab" data-route="binder"    href="/binder/">Binder</a>
-    <a class="app-tab" data-route="rip"       href="/rip/">Rip</a>
-    <a class="app-tab" data-route="market"    href="/market/">Market</a>
-    <a class="app-tab" data-route="rescue"    href="/rescue/">Rescue</a>
-    <a class="app-tab" data-route="affiliate" href="/affiliate/">Affiliate</a>
-    <a class="app-tab" data-route="play"      href="/play/">Play</a>
-    <a class="app-tab" data-route="security"  href="/security/">Security</a>
-  </nav>
-  <footer class="app-footer">
-    <p>Spaniel Wallet is a first-party, <strong>non-custodial</strong> wallet. The server never sees your seed phrase or private key. Use a strong passphrase. Back up your seed before relying on this wallet. The Spaniel Wallet is in active development; full audit has not occurred. <a href="/security/">Learn more</a>.</p>
-    <p class="app-footer-cta"><strong>Buy a fake dog. Help a real one.</strong></p>
-  </footer>
-</div>
-<script type="module" src="/bootstrap.js?v=20260518-split"></script>
+    <nav class="nav-links" aria-label="Top navigation">
+      <a href="#downloads">Get the wallet</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://github.com/SpanielSyndicate/spanielsyndicate.com/tree/main/extension" target="_blank" rel="noopener">Source</a>
+      <a class="nav-btn" href="/wallet/">Open web app</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero wrap">
+  <h1>A Solana wallet that <span class="accent">never asks for your seed phrase.</span></h1>
+  <p class="lede">
+    Open Spaniel Wallet in any browser, or add the Chrome or Firefox
+    extension to sign in to Solana dApps. Non-custodial, open source,
+    no email, no signup. <span class="pulse" aria-hidden="true"></span><span style="color:var(--success)">Live now.</span>
+  </p>
+
+  <div id="downloads" class="downloads">
+
+    <!-- 1. Web app -->
+    <article class="dl-card">
+      <svg class="icon" viewBox="0 0 64 64" aria-hidden="true">
+        <defs>
+          <linearGradient id="globe-g" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#ffc25e"/>
+            <stop offset="1" stop-color="#a85a06"/>
+          </linearGradient>
+        </defs>
+        <circle cx="32" cy="32" r="26" fill="none" stroke="url(#globe-g)" stroke-width="2.5"/>
+        <ellipse cx="32" cy="32" rx="14" ry="26" fill="none" stroke="url(#globe-g)" stroke-width="2.5"/>
+        <line x1="6" y1="32" x2="58" y2="32" stroke="url(#globe-g)" stroke-width="2.5"/>
+        <line x1="32" y1="6" x2="32" y2="58" stroke="url(#globe-g)" stroke-width="2.5"/>
+      </svg>
+      <p class="meta">Works everywhere</p>
+      <h2>Open in your browser</h2>
+      <p class="sub">No install. Visit the wallet right here. Your encrypted vault stays in your browser's storage; refresh and it's still there.</p>
+      <a class="dl-btn" href="/wallet/">Open web wallet →</a>
+    </article>
+
+    <!-- 2. Chrome / Edge / Brave / Arc -->
+    <article class="dl-card">
+      <svg class="icon" viewBox="0 0 64 64" aria-hidden="true">
+        <defs>
+          <linearGradient id="cg-red" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#f55a4e"/>
+            <stop offset="1" stop-color="#cc3a30"/>
+          </linearGradient>
+          <linearGradient id="cg-yellow" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#ffdb4d"/>
+            <stop offset="1" stop-color="#f4b400"/>
+          </linearGradient>
+          <linearGradient id="cg-green" x1="1" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#3ecf6d"/>
+            <stop offset="1" stop-color="#0f9d58"/>
+          </linearGradient>
+          <linearGradient id="cg-blue" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#5a9cff"/>
+            <stop offset="1" stop-color="#1a73e8"/>
+          </linearGradient>
+        </defs>
+        <circle cx="32" cy="32" r="30" fill="#fff"/>
+        <path fill="url(#cg-red)" d="M32 6a26 26 0 0 1 22.4 12.85H32a13.15 13.15 0 0 0-11.36 6.6L9.86 12.65A26 26 0 0 1 32 6z"/>
+        <path fill="url(#cg-green)" d="M54.4 18.85a26 26 0 0 1-3.04 32.18L40.2 31.78A13.15 13.15 0 0 0 32 18.85h22.4z"/>
+        <path fill="url(#cg-yellow)" d="M9.86 12.65l10.78 12.8A13.15 13.15 0 0 0 26.2 44.2L17.13 56.9A26 26 0 0 1 9.86 12.65z"/>
+        <path fill="url(#cg-blue)" d="M40.2 31.78A13.15 13.15 0 0 1 32 45.15a13.18 13.18 0 0 1-5.8-0.95L17.13 56.9A26 26 0 0 0 51.36 51.03L40.2 31.78z"/>
+        <circle cx="32" cy="32" r="9.5" fill="#fff"/>
+        <circle cx="32" cy="32" r="8" fill="url(#cg-blue)"/>
+      </svg>
+      <p class="meta">Manifest V3 · ~74 KB</p>
+      <h2>Add to Chrome</h2>
+      <p class="sub">Connect to MagicEden, Jupiter, Tensor, pump.fun, Drift &mdash; any Solana dApp that speaks Wallet&nbsp;Standard. Works in Chrome, Edge, Brave, and Arc.</p>
+      <a class="dl-btn" href="/dl/spaniel-wallet-chrome.zip" download>Download for Chrome</a>
+      <details>
+        <summary>Install instructions (3 steps)</summary>
+        <ol>
+          <li>Unzip the download.</li>
+          <li>Visit <code>chrome://extensions</code> &rarr; toggle <strong>Developer mode</strong>.</li>
+          <li>Click <strong>Load unpacked</strong> &rarr; pick the unzipped folder.</li>
+        </ol>
+      </details>
+    </article>
+
+    <!-- 3. Firefox -->
+    <article class="dl-card">
+      <svg class="icon" viewBox="0 0 64 64" aria-hidden="true">
+        <defs>
+          <radialGradient id="fxg-1" cx="0.5" cy="0.45" r="0.55">
+            <stop offset="0" stop-color="#ffd25e"/>
+            <stop offset="0.5" stop-color="#ff8d2a"/>
+            <stop offset="1" stop-color="#e0421f"/>
+          </radialGradient>
+          <linearGradient id="fxg-2" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0" stop-color="#b22d11"/>
+            <stop offset="1" stop-color="#ff8d2a"/>
+          </linearGradient>
+        </defs>
+        <circle cx="32" cy="32" r="26" fill="url(#fxg-1)"/>
+        <path fill="url(#fxg-2)" d="M14 22q4-12 18-14-3 5-2 9 1 7 8 9 9 3 16-2 1 11-6 21-6 9-18 11-12 2-21-7-9-9-7-22 1-6 5-11 2-2 4-1-2 3 0 4 1 1 3-1 1-3 0-6z" opacity="0.85"/>
+        <circle cx="32" cy="32" r="11" fill="#1a3a5c" opacity="0.7"/>
+        <circle cx="32" cy="32" r="8" fill="#0a1a2c"/>
+      </svg>
+      <p class="meta">Manifest V3 · ~74 KB</p>
+      <h2>Add to Firefox</h2>
+      <p class="sub">Same wallet, packaged for Firefox. Loads as a temporary add-on until the AMO review process completes.</p>
+      <a class="dl-btn" href="/dl/spaniel-wallet-firefox.zip" download>Download for Firefox</a>
+      <details>
+        <summary>Install instructions (3 steps)</summary>
+        <ol>
+          <li>Visit <code>about:debugging#/runtime/this-firefox</code>.</li>
+          <li>Click <strong>Load Temporary Add-on…</strong></li>
+          <li>Pick the downloaded <strong>.zip</strong>.</li>
+        </ol>
+      </details>
+    </article>
+
+  </div>
+</section>
+
+<!-- ─ TRUST STRIP ─ -->
+<section class="trust wrap">
+  <div class="trust-grid">
+    <div class="trust-item">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <h3>Non-custodial</h3>
+      <p>Your keys live in your browser. We can't see them, can't freeze them, can't lose them for you.</p>
+    </div>
+    <div class="trust-item">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+      </svg>
+      <h3>Open source</h3>
+      <p>Every line of wallet-core, the extension, and this page is on GitHub. Audit it yourself.</p>
+    </div>
+    <div class="trust-item">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+      </svg>
+      <h3>No tracking</h3>
+      <p>No email, no signup, no third-party analytics on your wallet pages. No password to forget either.</p>
+    </div>
+    <div class="trust-item">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      <h3>Encrypted at rest</h3>
+      <p>AES-256-GCM envelope, Argon2id-derived key. Your passphrase is your only way in.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─ FEATURES ─ -->
+<section class="features wrap">
+  <h2 class="section-title">What you can do with it</h2>
+  <div class="features-grid">
+    <div class="feat">
+      <h3>Send + receive SOL</h3>
+      <p>Buffer-free transfers built with BigInt-safe lamport math. Live fee preview before signing.</p>
+    </div>
+    <div class="feat">
+      <h3>Connect to any Solana dApp</h3>
+      <p>The extension implements the full Solana Wallet Standard — MagicEden, Jupiter, Tensor, pump.fun, Drift, you name it.</p>
+    </div>
+    <div class="feat">
+      <h3>Sign in with Solana (SIWS)</h3>
+      <p>Wallet-native auth for sites that support it. No email/password trail to lose.</p>
+    </div>
+    <div class="feat">
+      <h3>Rip Spaniel cards</h3>
+      <p>First-party support for the Spaniel Syndicate Series 1 product line. Open packs and view your binder from the wallet.</p>
+    </div>
+    <div class="feat">
+      <h3>Rescue Pool voting</h3>
+      <p>If you hold enough cards or sealed product, your wallet can vote where the monthly Rescue Pool distribution goes.</p>
+    </div>
+    <div class="feat">
+      <h3>Idle auto-lock</h3>
+      <p>After 5 minutes of inactivity (or at OS lock) the in-memory key bytes are wiped. Passphrase required to unlock again.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─ FAQ ─ -->
+<section id="faq" class="faq wrap">
+  <h2 class="section-title">Common questions</h2>
+
+  <details class="qa">
+    <summary>Where is my seed phrase stored?</summary>
+    <p>Inside your browser, encrypted under your passphrase with AES-256-GCM (key derived via Argon2id). Nothing is sent to a server. The repository is the only thing that ever sees the source code; your secrets stay local.</p>
+  </details>
+
+  <details class="qa">
+    <summary>What happens if I forget my passphrase?</summary>
+    <p>Your seed phrase is the only recovery. Without either your passphrase OR the original seed phrase, the funds are unrecoverable. Back the seed up somewhere safe (paper, metal plate, password manager) the moment you create a wallet — the wallet shows a 3-word verification quiz so you don't skip this step.</p>
+  </details>
+
+  <details class="qa">
+    <summary>Has this been audited?</summary>
+    <p>Not yet. The wallet is open source on GitHub and built with Paul Miller's audited <a href="https://github.com/paulmillr/noble-curves" target="_blank" rel="noopener">noble-curves</a> + <a href="https://github.com/paulmillr/noble-hashes" target="_blank" rel="noopener">noble-hashes</a> for all cryptographic primitives. We avoid third-party npm crypto packages entirely — see the <code>vendor/</code> folder in the repo. A formal audit is on the roadmap before we publish to the Chrome Web Store and Mozilla AMO. Use a small amount of SOL until then.</p>
+  </details>
+
+  <details class="qa">
+    <summary>Why isn't it on the Chrome Web Store / AMO yet?</summary>
+    <p>Both store reviews take 1–6 weeks. We're shipping a side-load build now so people can use it immediately; the store submission is in progress. Side-load builds are functionally identical — the .zip you download here is exactly what we'll submit.</p>
+  </details>
+
+  <details class="qa">
+    <summary>How is this different from Phantom or Solflare?</summary>
+    <p>It works with the same dApps via the Solana Wallet Standard. The differences: it's first-party to the Spaniel Syndicate collection (so the Spaniel-specific features — binder, rip, Rescue Pool — are built-in), it's open source, and the source code is much smaller (~75 KB extension) because we don't ship a multi-chain runtime.</p>
+  </details>
+
+  <details class="qa">
+    <summary>Does the wallet send my balance or activity to a server?</summary>
+    <p>For balance display the wallet queries Solana directly via the public RPC. For Spaniel-Syndicate-specific data (binder, rescue vote eligibility, etc.) it calls our Cloudflare Worker — but only with your wallet's public address, never with any private material. You can audit every fetch in the network panel.</p>
+  </details>
+
+  <details class="qa">
+    <summary>Can I use the extension to connect to non-Spaniel sites?</summary>
+    <p>Yes. The extension implements the standard Wallet&nbsp;Standard interface and registers itself with any page that asks (MagicEden, Jupiter, Tensor, etc.). The popup shows you the requesting site's origin clearly before you approve any signature.</p>
+  </details>
+</section>
+
+<!-- ─ DISCLOSURE ─ -->
+<section class="disclosure wrap">
+  <div class="disclosure-box">
+    <strong>Pre-release notice.</strong> Spaniel Wallet is in active
+    development; a formal third-party audit has not yet been completed.
+    The source is public on GitHub for self-verification. Treat the
+    wallet like an early build — back up your seed, use modest amounts
+    until the audit lands.
+  </div>
+</section>
+
+<!-- ─ FOOTER ─ -->
+<footer class="site wrap">
+  <div class="ft-cols">
+    <div>
+      <a href="/" class="brand" style="color: var(--fg-2)">
+        <span class="brand-mark" style="width:20px; height:20px;" aria-hidden="true"></span>
+        <span>SPANIEL WALLET</span>
+      </a>
+      <div style="margin-top: 4px; font-size: 12px; color: var(--fg-3)">
+        Made by <a href="https://spanielsyndicate.com" target="_blank" rel="noopener">Spaniel Syndicate</a>.
+      </div>
+    </div>
+    <nav class="ft-links" aria-label="Footer">
+      <a href="/wallet/">Web app</a>
+      <a href="/dl/spaniel-wallet-chrome.zip" download>Chrome</a>
+      <a href="/dl/spaniel-wallet-firefox.zip" download>Firefox</a>
+      <a href="https://github.com/SpanielSyndicate/spanielsyndicate.com/tree/main/extension" target="_blank" rel="noopener">Source</a>
+      <a href="https://github.com/SpanielSyndicate/spanielsyndicate.com/security" target="_blank" rel="noopener">Security</a>
+      <a href="https://spanielsyndicate.com/tos.html" target="_blank" rel="noopener">Terms</a>
+      <a href="https://spanielsyndicate.com/privacy.html" target="_blank" rel="noopener">Privacy</a>
+    </nav>
+  </div>
+</footer>
+
 </body>
 </html>
