@@ -10,6 +10,20 @@
 <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
 <link rel="stylesheet" href="/style.css">
+
+<!-- Cloudflare Web Analytics — cookieless, no IP storage. -->
+<script>
+  (function () {
+    var h = location.hostname;
+    if (h === '127.0.0.1' || h === 'localhost' || h.endsWith('.local')) return;
+    var s = document.createElement('script');
+    s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+    s.defer = true;
+    s.setAttribute('data-cf-beacon', '{"token": "3f92958f1ff4454dbae0874032ce77f8"}');
+    document.head.appendChild(s);
+  })();
+  </script>
+
 <style>
   :root { color-scheme: dark; }
   body { background:#08070a; color:#f5f3ef; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; margin:0; }

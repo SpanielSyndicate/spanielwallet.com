@@ -18,6 +18,20 @@
 <meta property="og:description" content="Open it in any browser, or install the Chrome / Firefox extension. Your seed phrase never leaves your device.">
 <meta property="og:image" content="https://spanielwallet.com/og-cover.png">
 <meta name="twitter:card" content="summary_large_image">
+
+<!-- Cloudflare Web Analytics — cookieless, no IP storage. -->
+<script>
+  (function () {
+    var h = location.hostname;
+    if (h === '127.0.0.1' || h === 'localhost' || h.endsWith('.local')) return;
+    var s = document.createElement('script');
+    s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+    s.defer = true;
+    s.setAttribute('data-cf-beacon', '{"token": "3f92958f1ff4454dbae0874032ce77f8"}');
+    document.head.appendChild(s);
+  })();
+  </script>
+
 <style>
   :root {
     color-scheme: dark;
