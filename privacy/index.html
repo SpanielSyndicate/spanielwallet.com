@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — Spaniel Wallet</title>
+<meta name="description" content="Spaniel Wallet privacy policy. We collect nothing personal. Your seed phrase, passphrase, and keys never leave your device.">
+<link rel="canonical" href="https://spanielwallet.com/privacy/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+
+<!-- Cloudflare Web Analytics — cookieless, no IP storage. -->
+<script>
+  (function () {
+    var h = location.hostname;
+    if (h === '127.0.0.1' || h === 'localhost' || h.endsWith('.local')) return;
+    var s = document.createElement('script');
+    s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+    s.defer = true;
+    s.setAttribute('data-cf-beacon', '{"token": "3f92958f1ff4454dbae0874032ce77f8"}');
+    document.head.appendChild(s);
+  })();
+  </script>
+
+<style>
+  :root { color-scheme: dark; }
+  body { background:#08070a; color:#f5f3ef; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; margin:0; line-height: 1.65; }
+  .pp-wrap { max-width: 760px; margin: 0 auto; padding: 50px 22px 80px; }
+  .pp-back { color:#f0a52b; text-decoration: none; font-size: 14px; }
+  .pp-back:hover { text-decoration: underline; }
+  h1 { font-size: 32px; line-height: 1.15; margin: 18px 0 6px; letter-spacing: -0.02em; }
+  h2 { font-size: 18px; margin: 32px 0 8px; letter-spacing: -0.01em; }
+  p, li { color: #c2bdb3; font-size: 15px; }
+  ul { padding-left: 18px; }
+  code { background:#1f1c25; padding: 1px 6px; border-radius: 4px; font-family: ui-monospace, monospace; font-size: 13px; }
+  .pp-meta { color:#7e7a73; font-size: 13px; margin-bottom: 18px; }
+  a { color:#f0a52b; }
+</style>
+</head>
+<body>
+<div class="pp-wrap">
+  <p><a class="pp-back" href="/">← Spaniel Wallet</a></p>
+  <h1>Privacy Policy</h1>
+  <p class="pp-meta">Effective: 2026-05-19. This is the canonical privacy policy for the Spaniel Wallet web app at <code>spanielwallet.com</code> and the Spaniel Wallet browser extension (Chrome Web Store + Firefox Add-ons).</p>
+
+  <h2>The short version</h2>
+  <p>
+    Spaniel Wallet is non-custodial. Your recovery phrase, passphrase,
+    private keys, and the encrypted vault stay on your device only.
+    None of that ever reaches our servers, our infrastructure, or any
+    third party. We collect no personal information.
+  </p>
+
+  <h2>What we do NOT collect</h2>
+  <ul>
+    <li>Your <strong>recovery phrase</strong> (BIP-39 mnemonic).</li>
+    <li>Your <strong>passphrase</strong>, ever &mdash; not even as a hash.</li>
+    <li>Your <strong>private key</strong> bytes or any derivative.</li>
+    <li>Your <strong>encrypted vault</strong> envelope is local-only (browser <code>IndexedDB</code> for the web app; <code>chrome.storage.local</code> for the extension).</li>
+    <li>Your email, real name, phone number, IP address, or any other PII.</li>
+  </ul>
+
+  <h2>What the wallet talks to over the network</h2>
+  <ul>
+    <li>
+      <strong>Solana RPC</strong> &mdash; to read balances, fetch token
+      accounts, and broadcast transactions you have signed. The RPC
+      sees your <strong>public wallet address</strong> only (which is
+      already a permanent on-chain identifier of every signed
+      transaction).
+    </li>
+    <li>
+      <strong>Spaniel Syndicate Cloudflare Worker</strong> &mdash; the
+      web app's tabs (Binder, Market, Rescue Pool, Affiliate) call our
+      backend to fetch Spaniel-Syndicate-specific state (your binder,
+      marketplace listings, etc.). All requests use your public wallet
+      address only.
+    </li>
+    <li>
+      <strong>Cloudflare Web Analytics</strong> &mdash; cookieless
+      page-view + page-load measurement. No IP storage, no
+      cross-site identifiers, no tracking pixels. Read Cloudflare's
+      <a href="https://www.cloudflare.com/web-analytics/" target="_blank" rel="noopener">policy</a>
+      for the full data model.
+    </li>
+  </ul>
+
+  <h2>What the extension talks to (none of the above changes)</h2>
+  <p>
+    The browser extension has the same network behavior as the web
+    app for the wallet-specific paths. dApp pages (MagicEden,
+    Jupiter, Tensor, etc.) use their <em>own</em> RPC for balances and
+    broadcasts &mdash; the extension forwards transaction requests
+    from those pages to your popup for approval and returns the
+    signed bytes. The extension does NOT inject extra network
+    requests into pages it runs on.
+  </p>
+  <p>
+    The extension declares <code>host_permissions: &lt;all_urls&gt;</code>
+    so its content script can register the Wallet Standard provider on
+    every dApp page. It does not read page DOM, scrape forms, or
+    exfiltrate any browsing data.
+  </p>
+
+  <h2>If you forget your passphrase</h2>
+  <p>
+    Your encrypted vault is unrecoverable without either (a) your
+    passphrase or (b) your seed phrase. We cannot recover either one
+    for you. Back the seed phrase up the moment you create a wallet.
+  </p>
+
+  <h2>Open source &amp; verification</h2>
+  <p>
+    Everything described above is verifiable in the public source
+    code at
+    <a href="https://github.com/SpanielSyndicate/spanielsyndicate.com/tree/main/extension" target="_blank" rel="noopener">github.com/SpanielSyndicate/spanielsyndicate.com</a>.
+    Inspect <code>extension/background.js</code> for the message-routing
+    surface and <code>js/wallet-core/</code> for the cryptographic
+    primitives (Argon2id + AES-256-GCM, ed25519 via Paul Miller's
+    audited <code>noble</code> libraries).
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    Security disclosures or privacy questions:
+    <a href="mailto:admin@spanielsyndicate.com">admin@spanielsyndicate.com</a>.
+    Code-level issues: open one in the
+    <a href="https://github.com/SpanielSyndicate/spanielsyndicate.com/issues" target="_blank" rel="noopener">public issue tracker</a>.
+  </p>
+
+  <h2>Changes</h2>
+  <p>
+    Material changes will be announced via
+    <a href="https://x.com/SpanielSolana" target="_blank" rel="noopener">@SpanielSolana</a>
+    and a revised effective date here. We will never silently broaden
+    data collection &mdash; the wallet's non-custodial,
+    no-PII-collected posture is the product, not a default that can
+    be flipped.
+  </p>
+
+</div>
+</body>
+</html>

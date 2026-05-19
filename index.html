@@ -94,61 +94,81 @@
     margin: 0 0 28px;
   }
 
-  /* ─ DOWNLOAD CARDS ─ */
-  .downloads {
-    display: grid;
-    gap: 18px;
-    grid-template-columns: 1fr;
+  /* ─ HERO CTAs ─ */
+  .hero-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 12px;
   }
-  @media (min-width: 760px) {
-    .downloads { grid-template-columns: 1fr 1fr 1fr; }
-  }
-  .dl-card {
-    background: linear-gradient(160deg, var(--bg-2), var(--bg-3));
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 28px 22px 24px;
+  .hero-cta {
+    flex: 1 1 280px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    transition: transform 180ms, border-color 180ms, box-shadow 180ms;
-    position: relative;
-    overflow: hidden;
-  }
-  .dl-card::before {
-    content: '';
-    position: absolute;
-    top: -40px; right: -40px;
-    width: 160px; height: 160px;
-    background: radial-gradient(circle, var(--accent-glow), transparent 65%);
-    opacity: 0.0;
-    transition: opacity 220ms;
-    pointer-events: none;
-  }
-  .dl-card:hover { transform: translateY(-3px); border-color: rgba(240,165,43,0.45);
-    box-shadow: 0 16px 40px -20px var(--accent-glow); }
-  .dl-card:hover::before { opacity: 0.8; }
-  .dl-card .icon { width: 64px; height: 64px; display: block; }
-  .dl-card h2 { margin: 0; font-size: 22px; letter-spacing: -0.01em; }
-  .dl-card p.sub { margin: 0; color: var(--fg-2); font-size: 14px; flex: 1; }
-  .dl-card .dl-btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    background: var(--accent); color: #1a0e02;
+    gap: 2px;
     text-decoration: none;
-    font-weight: 700; font-size: 15px;
-    padding: 12px 18px;
-    border-radius: 10px;
-    transition: background 180ms;
-    margin-top: 4px;
+    padding: 18px 22px;
+    border-radius: 12px;
+    transition: transform 160ms, border-color 160ms, box-shadow 160ms, background 160ms;
   }
-  .dl-card .dl-btn:hover { background: var(--accent-2); }
-  .dl-card .meta { color: var(--fg-3); font-size: 12px; margin: 0; letter-spacing: 0.03em; text-transform: uppercase; }
-  .dl-card details { color: var(--fg-2); font-size: 13px; }
-  .dl-card details summary { cursor: pointer; color: var(--fg-2); padding: 4px 0; }
-  .dl-card details summary:hover { color: var(--fg); }
-  .dl-card ol { padding-left: 18px; margin: 8px 0 0; line-height: 1.65; }
-  .dl-card code { background: var(--bg-4); padding: 1px 6px; border-radius: 4px;
-    font-family: var(--mono); font-size: 12px; }
+  .hero-cta-label { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+  .hero-cta-sub { font-size: 13px; opacity: 0.85; }
+  .hero-cta.primary {
+    background: var(--accent);
+    color: #1a0e02;
+    border: 1px solid var(--accent);
+    box-shadow: 0 10px 24px -10px var(--accent-glow);
+  }
+  .hero-cta.primary:hover { transform: translateY(-2px); background: var(--accent-2); box-shadow: 0 14px 32px -10px var(--accent-glow); }
+  .hero-cta.ghost {
+    background: transparent;
+    color: var(--fg);
+    border: 1px solid var(--border);
+  }
+  .hero-cta.ghost:hover { transform: translateY(-2px); border-color: rgba(240,165,43,0.55); background: rgba(240,165,43,0.05); }
+  .hero-cta.ghost .hero-cta-sub { color: var(--fg-2); }
+
+  /* ─ EXTENSION STATUS / STORE CARDS ─ */
+  .ext-status { padding: 56px 0 20px; }
+  .ext-status .section-title { margin: 0 0 8px; font-size: clamp(22px, 2.6vw, 28px); letter-spacing: -0.01em; }
+  .ext-status-lede { color: var(--fg-2); max-width: 640px; margin: 0 0 24px; }
+  .store-grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
+  @media (min-width: 720px) { .store-grid { grid-template-columns: 1fr 1fr; } }
+  .store-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: border-color 160ms;
+  }
+  .store-card:hover { border-color: rgba(240,165,43,0.30); }
+  .store-card-top { display: flex; align-items: center; gap: 14px; }
+  .store-icon { width: 44px; height: 44px; flex-shrink: 0; }
+  .store-card-meta { display: flex; flex-direction: column; gap: 2px; }
+  .store-card-title { margin: 0; font-size: 17px; font-weight: 700; }
+  .store-card-sub { margin: 0; color: var(--fg-3); font-size: 12px; letter-spacing: 0.03em; }
+  .store-status {
+    align-self: flex-start;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+  .store-status.pending { background: rgba(240,165,43,0.10); border: 1px solid rgba(240,165,43,0.40); color: #ffd591; }
+  .store-status.pending::before {
+    content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); animation: pulse 1.8s infinite;
+  }
+  .store-status.live { background: rgba(92,196,107,0.12); border: 1px solid rgba(92,196,107,0.40); color: #bfeac7; }
+  .store-status.live::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+  .store-card-body { color: var(--fg-2); font-size: 14px; margin: 0; }
+  .ext-status-note { color: var(--fg-3); font-size: 13px; margin-top: 20px; }
 
   /* ─ TRUST STRIP ─ */
   section.trust { padding: 60px 0 30px; }
@@ -221,118 +241,104 @@
       <a href="#downloads">Get the wallet</a>
       <a href="#faq">FAQ</a>
       <a href="https://github.com/SpanielSyndicate/spanielsyndicate.com/tree/main/extension" target="_blank" rel="noopener">Source</a>
-      <a class="nav-btn" href="/wallet/">Open web app</a>
+      <a class="nav-btn" href="/wallet/">Open wallet</a>
     </nav>
   </div>
 </header>
 
 <section class="hero wrap">
-  <h1>A Solana wallet that <span class="accent">never asks for your seed phrase.</span></h1>
+  <h1>The Solana wallet that <span class="accent">never asks for your seed phrase.</span></h1>
   <p class="lede">
-    Open Spaniel Wallet in any browser, or add the Chrome or Firefox
-    extension to sign in to Solana dApps. Non-custodial, open source,
-    no email, no signup. <span class="pulse" aria-hidden="true"></span><span style="color:var(--success)">Live now.</span>
+    Open Spaniel Wallet in your browser to send, receive, and manage SOL.
+    Non-custodial, open source, no email, no signup. Your encrypted vault
+    lives on your device only.
   </p>
 
-  <div id="downloads" class="downloads">
+  <div class="hero-cta-row">
+    <a class="hero-cta primary" href="/wallet/">
+      <span class="hero-cta-label">Open the web wallet</span>
+      <span class="hero-cta-sub">No install required &middot; works in any modern browser</span>
+    </a>
+    <a class="hero-cta ghost" href="#extensions">
+      <span class="hero-cta-label">Get the extension</span>
+      <span class="hero-cta-sub">Connect Spaniel Wallet to any Solana dApp</span>
+    </a>
+  </div>
+</section>
 
-    <!-- 1. Web app -->
-    <article class="dl-card">
-      <svg class="icon" viewBox="0 0 64 64" aria-hidden="true">
-        <defs>
-          <linearGradient id="globe-g" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#ffc25e"/>
-            <stop offset="1" stop-color="#a85a06"/>
-          </linearGradient>
-        </defs>
-        <circle cx="32" cy="32" r="26" fill="none" stroke="url(#globe-g)" stroke-width="2.5"/>
-        <ellipse cx="32" cy="32" rx="14" ry="26" fill="none" stroke="url(#globe-g)" stroke-width="2.5"/>
-        <line x1="6" y1="32" x2="58" y2="32" stroke="url(#globe-g)" stroke-width="2.5"/>
-        <line x1="32" y1="6" x2="32" y2="58" stroke="url(#globe-g)" stroke-width="2.5"/>
-      </svg>
-      <p class="meta">Works everywhere</p>
-      <h2>Open in your browser</h2>
-      <p class="sub">No install. Visit the wallet right here. Your encrypted vault stays in your browser's storage; refresh and it's still there.</p>
-      <a class="dl-btn" href="/wallet/">Open web wallet →</a>
+<!-- ─ EXTENSIONS STATUS ─ -->
+<section id="extensions" class="ext-status wrap">
+  <h2 class="section-title">Browser extension &mdash; coming soon</h2>
+  <p class="ext-status-lede">
+    The Spaniel Wallet browser extension is in review with both stores so
+    you can connect to MagicEden, Jupiter, Tensor, pump.fun, Drift, and
+    any other Solana dApp that speaks the Wallet&nbsp;Standard.
+  </p>
+
+  <div class="store-grid">
+
+    <article class="store-card">
+      <div class="store-card-top">
+        <svg class="store-icon" viewBox="0 0 64 64" aria-hidden="true">
+          <defs>
+            <linearGradient id="cg-red" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f55a4e"/><stop offset="1" stop-color="#cc3a30"/></linearGradient>
+            <linearGradient id="cg-yellow" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffdb4d"/><stop offset="1" stop-color="#f4b400"/></linearGradient>
+            <linearGradient id="cg-green" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3ecf6d"/><stop offset="1" stop-color="#0f9d58"/></linearGradient>
+            <linearGradient id="cg-blue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a9cff"/><stop offset="1" stop-color="#1a73e8"/></linearGradient>
+          </defs>
+          <circle cx="32" cy="32" r="30" fill="#fff"/>
+          <path fill="url(#cg-red)" d="M32 6a26 26 0 0 1 22.4 12.85H32a13.15 13.15 0 0 0-11.36 6.6L9.86 12.65A26 26 0 0 1 32 6z"/>
+          <path fill="url(#cg-green)" d="M54.4 18.85a26 26 0 0 1-3.04 32.18L40.2 31.78A13.15 13.15 0 0 0 32 18.85h22.4z"/>
+          <path fill="url(#cg-yellow)" d="M9.86 12.65l10.78 12.8A13.15 13.15 0 0 0 26.2 44.2L17.13 56.9A26 26 0 0 1 9.86 12.65z"/>
+          <path fill="url(#cg-blue)" d="M40.2 31.78A13.15 13.15 0 0 1 32 45.15a13.18 13.18 0 0 1-5.8-0.95L17.13 56.9A26 26 0 0 0 51.36 51.03L40.2 31.78z"/>
+          <circle cx="32" cy="32" r="9.5" fill="#fff"/>
+          <circle cx="32" cy="32" r="8" fill="url(#cg-blue)"/>
+        </svg>
+        <div class="store-card-meta">
+          <h3 class="store-card-title">Chrome Web Store</h3>
+          <p class="store-card-sub">Chrome &middot; Edge &middot; Brave &middot; Arc</p>
+        </div>
+      </div>
+      <span class="store-status pending">Pending review</span>
+      <p class="store-card-body">
+        Once approved, install lands as a one-click add to your browser.
+        Estimated review window: 1&ndash;3 weeks for first-time wallet
+        publishers.
+      </p>
     </article>
 
-    <!-- 2. Chrome / Edge / Brave / Arc -->
-    <article class="dl-card">
-      <svg class="icon" viewBox="0 0 64 64" aria-hidden="true">
-        <defs>
-          <linearGradient id="cg-red" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#f55a4e"/>
-            <stop offset="1" stop-color="#cc3a30"/>
-          </linearGradient>
-          <linearGradient id="cg-yellow" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#ffdb4d"/>
-            <stop offset="1" stop-color="#f4b400"/>
-          </linearGradient>
-          <linearGradient id="cg-green" x1="1" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#3ecf6d"/>
-            <stop offset="1" stop-color="#0f9d58"/>
-          </linearGradient>
-          <linearGradient id="cg-blue" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#5a9cff"/>
-            <stop offset="1" stop-color="#1a73e8"/>
-          </linearGradient>
-        </defs>
-        <circle cx="32" cy="32" r="30" fill="#fff"/>
-        <path fill="url(#cg-red)" d="M32 6a26 26 0 0 1 22.4 12.85H32a13.15 13.15 0 0 0-11.36 6.6L9.86 12.65A26 26 0 0 1 32 6z"/>
-        <path fill="url(#cg-green)" d="M54.4 18.85a26 26 0 0 1-3.04 32.18L40.2 31.78A13.15 13.15 0 0 0 32 18.85h22.4z"/>
-        <path fill="url(#cg-yellow)" d="M9.86 12.65l10.78 12.8A13.15 13.15 0 0 0 26.2 44.2L17.13 56.9A26 26 0 0 1 9.86 12.65z"/>
-        <path fill="url(#cg-blue)" d="M40.2 31.78A13.15 13.15 0 0 1 32 45.15a13.18 13.18 0 0 1-5.8-0.95L17.13 56.9A26 26 0 0 0 51.36 51.03L40.2 31.78z"/>
-        <circle cx="32" cy="32" r="9.5" fill="#fff"/>
-        <circle cx="32" cy="32" r="8" fill="url(#cg-blue)"/>
-      </svg>
-      <p class="meta">Manifest V3 · ~74 KB</p>
-      <h2>Add to Chrome</h2>
-      <p class="sub">Connect to MagicEden, Jupiter, Tensor, pump.fun, Drift &mdash; any Solana dApp that speaks Wallet&nbsp;Standard. Works in Chrome, Edge, Brave, and Arc.</p>
-      <a class="dl-btn" href="/dl/spaniel-wallet-chrome.zip" download>Download for Chrome</a>
-      <details>
-        <summary>Install instructions (3 steps)</summary>
-        <ol>
-          <li>Unzip the download.</li>
-          <li>Visit <code>chrome://extensions</code> &rarr; toggle <strong>Developer mode</strong>.</li>
-          <li>Click <strong>Load unpacked</strong> &rarr; pick the unzipped folder.</li>
-        </ol>
-      </details>
-    </article>
-
-    <!-- 3. Firefox -->
-    <article class="dl-card">
-      <svg class="icon" viewBox="0 0 64 64" aria-hidden="true">
-        <defs>
-          <radialGradient id="fxg-1" cx="0.5" cy="0.45" r="0.55">
-            <stop offset="0" stop-color="#ffd25e"/>
-            <stop offset="0.5" stop-color="#ff8d2a"/>
-            <stop offset="1" stop-color="#e0421f"/>
-          </radialGradient>
-          <linearGradient id="fxg-2" x1="0" y1="1" x2="1" y2="0">
-            <stop offset="0" stop-color="#b22d11"/>
-            <stop offset="1" stop-color="#ff8d2a"/>
-          </linearGradient>
-        </defs>
-        <circle cx="32" cy="32" r="26" fill="url(#fxg-1)"/>
-        <path fill="url(#fxg-2)" d="M14 22q4-12 18-14-3 5-2 9 1 7 8 9 9 3 16-2 1 11-6 21-6 9-18 11-12 2-21-7-9-9-7-22 1-6 5-11 2-2 4-1-2 3 0 4 1 1 3-1 1-3 0-6z" opacity="0.85"/>
-        <circle cx="32" cy="32" r="11" fill="#1a3a5c" opacity="0.7"/>
-        <circle cx="32" cy="32" r="8" fill="#0a1a2c"/>
-      </svg>
-      <p class="meta">Manifest V3 · ~74 KB</p>
-      <h2>Add to Firefox</h2>
-      <p class="sub">Same wallet, packaged for Firefox. Loads as a temporary add-on until the AMO review process completes.</p>
-      <a class="dl-btn" href="/dl/spaniel-wallet-firefox.zip" download>Download for Firefox</a>
-      <details>
-        <summary>Install instructions (3 steps)</summary>
-        <ol>
-          <li>Visit <code>about:debugging#/runtime/this-firefox</code>.</li>
-          <li>Click <strong>Load Temporary Add-on…</strong></li>
-          <li>Pick the downloaded <strong>.zip</strong>.</li>
-        </ol>
-      </details>
+    <article class="store-card">
+      <div class="store-card-top">
+        <svg class="store-icon" viewBox="0 0 64 64" aria-hidden="true">
+          <defs>
+            <radialGradient id="fxg-1" cx="0.5" cy="0.45" r="0.55"><stop offset="0" stop-color="#ffd25e"/><stop offset="0.5" stop-color="#ff8d2a"/><stop offset="1" stop-color="#e0421f"/></radialGradient>
+            <linearGradient id="fxg-2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#b22d11"/><stop offset="1" stop-color="#ff8d2a"/></linearGradient>
+          </defs>
+          <circle cx="32" cy="32" r="26" fill="url(#fxg-1)"/>
+          <path fill="url(#fxg-2)" d="M14 22q4-12 18-14-3 5-2 9 1 7 8 9 9 3 16-2 1 11-6 21-6 9-18 11-12 2-21-7-9-9-7-22 1-6 5-11 2-2 4-1-2 3 0 4 1 1 3-1 1-3 0-6z" opacity="0.85"/>
+          <circle cx="32" cy="32" r="11" fill="#1a3a5c" opacity="0.7"/>
+          <circle cx="32" cy="32" r="8" fill="#0a1a2c"/>
+        </svg>
+        <div class="store-card-meta">
+          <h3 class="store-card-title">Firefox Add-ons</h3>
+          <p class="store-card-sub">Firefox &middot; LibreWolf</p>
+        </div>
+      </div>
+      <span class="store-status pending">Pending review</span>
+      <p class="store-card-body">
+        Open source extension, Manifest V3, signed by Mozilla. AMO
+        review typically completes within a few days.
+      </p>
     </article>
 
   </div>
+
+  <p class="ext-status-note">
+    No side-loaded pre-release downloads. Both store listings will go
+    live as soon as the review process completes. Follow
+    <a href="https://x.com/SpanielSolana" target="_blank" rel="noopener">@SpanielSolana</a>
+    for launch.
+  </p>
 </section>
 
 <!-- ─ TRUST STRIP ─ -->
@@ -467,12 +473,11 @@
     </div>
     <nav class="ft-links" aria-label="Footer">
       <a href="/wallet/">Web app</a>
-      <a href="/dl/spaniel-wallet-chrome.zip" download>Chrome</a>
-      <a href="/dl/spaniel-wallet-firefox.zip" download>Firefox</a>
+      <a href="#extensions">Extension status</a>
       <a href="https://github.com/SpanielSyndicate/spanielsyndicate.com/tree/main/extension" target="_blank" rel="noopener">Source</a>
-      <a href="https://github.com/SpanielSyndicate/spanielsyndicate.com/security" target="_blank" rel="noopener">Security</a>
+      <a href="/privacy/">Privacy</a>
       <a href="https://spanielsyndicate.com/tos.html" target="_blank" rel="noopener">Terms</a>
-      <a href="https://spanielsyndicate.com/privacy.html" target="_blank" rel="noopener">Privacy</a>
+      <a href="https://spanielsyndicate.com" target="_blank" rel="noopener">Spaniel Syndicate ↗</a>
     </nav>
   </div>
 </footer>
