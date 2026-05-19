@@ -1,0 +1,611 @@
+/* Spaniel Wallet PWA — mobile-first stylesheet.
+ * Builds on /style.css for color tokens but ships its own layout.
+ *
+ * Geometry: hard pixel-card edges everywhere. No border-radius, no
+ * pill shapes, no blurred panes, no glassmorphism. See
+ * tests/pwa-visual-discipline.test.mjs — it fails the build if any
+ * rounded corner sneaks back in.
+ */
+
+html, body {
+  height: 100%;
+}
+
+body.spaniel-app {
+  margin: 0;
+  background: var(--bg, #08070a);
+  color: var(--ink, #fff7e2);
+  font-family: "DM Mono", ui-monospace, SFMono-Regular, monospace;
+  -webkit-tap-highlight-color: rgba(255, 247, 226, 0.08);
+}
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* ── HEADER ─────────────────────────────────────────────────── */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--soft-line, rgba(255, 247, 226, 0.22));
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.app-brand {
+  display: flex;
+  flex-direction: column;
+  font-family: "Bebas Neue", "DM Sans", sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  text-decoration: none;
+  line-height: 1;
+}
+
+.app-brand-line-1 {
+  font-size: 13px;
+  color: var(--muted, #8e8a9b);
+}
+
+.app-brand-line-2 {
+  font-size: 22px;
+}
+
+.app-wallet-pill {
+  /* Class name is historical — the chip is a sharp rectangle. */
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+  background: var(--panel, #17151f);
+  color: var(--ink);
+  min-width: 0;
+  max-width: 50vw;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: 1px solid var(--soft-line, rgba(255, 247, 226, 0.22));
+}
+
+.app-wallet-pill[data-state="locked"]    { background: #2a1d10; color: #f5b500; }
+.app-wallet-pill[data-state="unlocked"]  { background: #11201a; color: #6fcc8e; }
+.app-wallet-pill[data-state="missing"]   { background: #220a0d; color: #ff9aa0; }
+
+/* ── MAIN ───────────────────────────────────────────────────── */
+
+.app-main {
+  flex: 1;
+  padding: 16px;
+  padding-bottom: 96px; /* clearance for sticky tab bar */
+}
+
+.app-loading {
+  color: var(--muted);
+  text-align: center;
+  padding: 40px 0;
+}
+
+h1.app-title {
+  font-size: 26px;
+  margin: 0 0 4px;
+  letter-spacing: 0.02em;
+}
+
+p.app-subtitle {
+  color: var(--muted);
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
+.app-section {
+  background: var(--panel);
+  border: 1px solid var(--soft-line);
+  padding: 14px 14px;
+  margin-bottom: 16px;
+}
+
+.app-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent, #f5df88);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0 0 10px;
+}
+
+.app-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--soft-line);
+  gap: 12px;
+}
+
+.app-row:last-child {
+  border-bottom: 0;
+}
+
+.app-row-label {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.app-row-value {
+  color: var(--ink);
+  font-weight: 500;
+  word-break: break-all;
+  text-align: right;
+}
+
+.app-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 16px;
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 44px;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+}
+
+.app-btn:hover {
+  background: rgba(255, 247, 226, 0.06);
+}
+
+.app-btn-primary:hover {
+  filter: brightness(0.95);
+}
+
+.app-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.app-btn-primary {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+.app-btn-danger {
+  background: transparent;
+  color: var(--error, #f06262);
+  border-color: var(--error, #f06262);
+}
+
+.app-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.app-input {
+  display: block;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--soft-line);
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+
+.app-input:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+
+label.app-label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+/* ── TABS ───────────────────────────────────────────────────── */
+
+.app-tabs {
+  position: sticky;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--soft-line);
+  border-top: 1px solid var(--soft-line);
+  z-index: 10;
+}
+
+.app-tab {
+  background: var(--bg);
+  color: var(--muted);
+  padding: 12px 4px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  min-height: 44px;
+}
+
+.app-tab[aria-current="page"] {
+  color: var(--accent);
+  background: var(--panel);
+}
+
+/* On larger phones / tablets, show 8 tabs in one row */
+@media (min-width: 520px) {
+  .app-tabs {
+    grid-template-columns: repeat(8, 1fr);
+  }
+}
+
+/* ── FOOTER ─────────────────────────────────────────────────── */
+
+.app-footer {
+  padding: 12px 16px 80px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.app-footer-cta {
+  margin-top: 8px;
+  color: var(--ink);
+  font-size: 13px;
+}
+
+/* ── COMPONENTS ─────────────────────────────────────────────── */
+
+.app-card-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.app-card-thumb {
+  aspect-ratio: 2.5 / 3.5;
+  border: 1px solid var(--soft-line);
+  background: var(--panel);
+  overflow: hidden;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.app-card-thumb > svg {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.app-pre {
+  background: var(--bg);
+  padding: 12px;
+  border: 1px solid var(--soft-line);
+  font-size: 12px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.app-gated {
+  border: 1px dashed var(--accent-2, #f7b643);
+  background: rgba(247, 182, 67, 0.08);
+  color: var(--accent-2, #f7b643);
+  padding: 12px;
+  font-size: 13px;
+}
+
+.app-pending {
+  border: 1px dashed var(--muted);
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ─── Spaniel Showdown — playable match UI ───────────────────── */
+
+.keeps-triangle-helper {
+  color: var(--muted);
+  font-size: 12px;
+}
+.keeps-lineup-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.keeps-lineup-row {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.keeps-lineup-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--soft-line);
+  padding: 2px 6px;
+  font-size: 11px;
+  background: var(--bg);
+}
+.keeps-lineup-chip.is-active {
+  border-color: var(--accent-2, #f7b643);
+  color: var(--accent-2, #f7b643);
+}
+.keeps-lineup-chip.is-ko {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+.keeps-chip-label { color: var(--muted); }
+.keeps-chip-key { font-family: var(--font-mono, monospace); }
+.keeps-chip-spirit { font-weight: 600; }
+
+.keeps-active-card {
+  border: 1px solid var(--soft-line);
+  padding: 10px;
+  background: var(--bg);
+}
+.keeps-active-inner { display: grid; gap: 6px; }
+.keeps-active-name {
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  word-break: break-all;
+}
+.keeps-stat-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+.keeps-stat strong { color: var(--accent-2, #f7b643); }
+.keeps-active-ability {
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* lineup picker */
+.keeps-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+.keeps-picker-card {
+  border: 1px solid var(--soft-line);
+  padding: 8px;
+  background: var(--bg);
+  cursor: pointer;
+}
+.keeps-picker-card.is-selected {
+  border-color: var(--accent-2, #f7b643);
+}
+.keeps-picker-card[disabled],
+.keeps-picker-card.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Wallet onboarding: passphrase strength meter ─────────────── */
+
+.strength-meter {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+.strength-meter-bar {
+  flex: 1;
+  height: 6px;
+  background: #2a2a2a;
+  transition: background-color 120ms ease-out;
+}
+.strength-meter[data-score="0"] .strength-meter-bar:nth-child(-n+1) { background-color: #b30000; }
+.strength-meter[data-score="1"] .strength-meter-bar:nth-child(-n+2) { background-color: #c5380c; }
+.strength-meter[data-score="2"] .strength-meter-bar:nth-child(-n+3) { background-color: #b88600; }
+.strength-meter[data-score="3"] .strength-meter-bar:nth-child(-n+4) { background-color: #3a8a2e; }
+.strength-meter[data-score="4"] .strength-meter-bar:nth-child(-n+5) { background-color: #2a6b1d; }
+.strength-meter-caption {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+  letter-spacing: 0.03em;
+}
+.strength-meter-caption[data-state="strong"] { color: #6ec05a; }
+.strength-meter-caption[data-state="weak"]   { color: #e08484; }
+.strength-meter-problem {
+  color: #e08484;
+  font-size: 13px;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+.strength-meter-suggestion {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+/* ─── Wallet onboarding: SRP reveal grid ───────────────────────── */
+
+.srp-warn {
+  border: 1px solid #b88600;
+  background: rgba(184, 134, 0, 0.06);
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 8px 0 12px;
+}
+.srp-warn strong {
+  display: block;
+  margin-bottom: 4px;
+}
+.srp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+@media (max-width: 480px) {
+  .srp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.srp-cell {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 8px 10px;
+  background: #0e0d10;
+  border: 1px solid #2a2a2a;
+  font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  line-height: 1.2;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.srp-num {
+  color: var(--muted);
+  font-size: 11px;
+  min-width: 22px;
+  text-align: right;
+}
+.srp-word {
+  color: var(--text, #fff7e2);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  flex: 1;
+}
+/* The reveal-blur trick: when revealed=0, blur the entire word
+ * grid so screenshots / shoulder-surfers see fuzz. When revealed=1
+ * the JS removes the blur. */
+.srp-grid[data-revealed="0"] .srp-word {
+  color: transparent;
+  text-shadow: 0 0 8px rgba(255, 247, 226, 0.5);
+  filter: blur(6px); /* @allow-blur: SRP recovery-phrase reveal — safety, not aesthetic */
+  -webkit-filter: blur(6px); /* @allow-blur: SRP recovery-phrase reveal — safety, not aesthetic */
+  user-select: none;
+}
+.srp-grid[data-revealed="0"] .srp-cell::after {
+  content: '';
+  position: absolute;
+}
+.srp-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.srp-status {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.srp-clipboard {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: #6ec05a;
+  margin-top: 4px;
+}
+
+/* ─── Wallet onboarding: SRP backup quiz ───────────────────────── */
+
+.srp-quiz-prompt {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+.srp-quiz-form .srp-quiz-input {
+  font-family: 'DM Mono', monospace;
+}
+.app-input-error {
+  border-color: #c5380c !important;
+  background: rgba(197, 56, 12, 0.08);
+}
+.srp-quiz-status {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.srp-quiz-status:not(:empty) {
+  color: #e08484;
+}
+
+/* ─── Wallet onboarding: stepper ───────────────────────────────── */
+
+.create-stepper {
+  display: flex;
+  gap: 4px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+.create-stepper li {
+  flex: 1;
+  height: 4px;
+  background: #2a2a2a;
+}
+.create-stepper li[data-active="1"] {
+  background: var(--accent, #f7b643);
+}
+.create-stepper li[data-done="1"] {
+  background: #3a8a2e;
+}
+.create-step-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+}
+
+/* ─── Onboarding educational interstitials ─────────────────────── */
+
+.onboard-card {
+  border: 1px solid var(--soft-line, #2a2a2a);
+  padding: 14px;
+  margin-bottom: 10px;
+  background: #0e0d10;
+}
+.onboard-card h3 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.04em;
+}
+.onboard-card p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.onboard-confirm {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 12px 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.onboard-confirm input[type="checkbox"] {
+  margin-top: 3px;
+}

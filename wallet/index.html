@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#08070a">
+<meta name="description" content="Spaniel Syndicate Wallet — a first-party, non-custodial Solana wallet for ripping packs, building your kennel, voting in the Rescue Pool, and battling friends in Spaniel Showdown.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Spaniel Wallet">
+<meta http-equiv="Cache-Control" content="no-cache">
+<title>Spaniel Wallet</title>
+
+<link rel="canonical" href="https://spanielwallet.com/">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css?v=20260518-split">
+<link rel="stylesheet" href="/app.css?v=20260518-split">
+
+<script>
+  (function () {
+    var h = location.hostname;
+    if (h === '127.0.0.1' || h === 'localhost' || h.endsWith('.local')) return;
+    var s = document.createElement('script');
+    s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+    s.defer = true;
+    s.setAttribute('data-cf-beacon', '{"token": "6a64129b5b864f8492f9dad04ec3b631"}');
+    document.head.appendChild(s);
+  })();
+</script>
+</head>
+<body class="spaniel-app">
+<!-- spanielwallet-banner:start -->
+<div class="sw-banner" role="region" aria-label="Browser extension">
+  <div class="sw-banner-text">
+    <strong>New here?</strong> Install the Spaniel Wallet browser extension to connect to any Solana dApp.
+  </div>
+  <a class="sw-banner-cta" href="/extension/">Install →</a>
+</div>
+<style>
+  .sw-banner {
+    background: linear-gradient(90deg, rgba(240,165,43,0.13), rgba(168,90,6,0.08));
+    border-bottom: 1px solid rgba(240,165,43,0.30);
+    color: #ffe0b1;
+    padding: 7px 14px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .sw-banner-text { color: #ffe0b1; }
+  .sw-banner-cta {
+    color: #ffe0b1;
+    text-decoration: none;
+    background: rgba(240,165,43,0.18);
+    border: 1px solid rgba(240,165,43,0.40);
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+  .sw-banner-cta:hover { background: rgba(240,165,43,0.32); color: #fff; }
+</style>
+<!-- spanielwallet-banner:end -->
+
+<div id="appRoot" class="app-shell">
+  <header class="app-header">
+    <a class="app-brand" href="/">
+      <span class="app-brand-line-1">SPANIEL</span>
+      <span class="app-brand-line-2">WALLET</span>
+    </a>
+    <div id="appWalletPill" class="app-wallet-pill" aria-live="polite">Loading…</div>
+  </header>
+  <main id="appMain" class="app-main" aria-live="polite">
+    <p class="app-loading">Loading…</p>
+  </main>
+  <nav class="app-tabs" aria-label="Main sections">
+    <a class="app-tab" data-route="wallet"    href="/wallet/">Wallet</a>
+    <a class="app-tab" data-route="binder"    href="/binder/">Binder</a>
+    <a class="app-tab" data-route="rip"       href="/rip/">Rip</a>
+    <a class="app-tab" data-route="market"    href="/market/">Market</a>
+    <a class="app-tab" data-route="rescue"    href="/rescue/">Rescue</a>
+    <a class="app-tab" data-route="affiliate" href="/affiliate/">Affiliate</a>
+    <a class="app-tab" data-route="play"      href="/play/">Play</a>
+    <a class="app-tab" data-route="security"  href="/security/">Security</a>
+  </nav>
+  <footer class="app-footer">
+    <p>Spaniel Wallet is a first-party, <strong>non-custodial</strong> wallet. The server never sees your seed phrase or private key. Use a strong passphrase. Back up your seed before relying on this wallet. The Spaniel Wallet is in active development; full audit has not occurred. <a href="/security/">Learn more</a>.</p>
+    <p class="app-footer-cta"><strong>Buy a fake dog. Help a real one.</strong></p>
+  </footer>
+</div>
+<script type="module" src="/bootstrap.js?v=20260518-split"></script>
+</body>
+</html>

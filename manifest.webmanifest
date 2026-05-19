@@ -1,0 +1,30 @@
+{
+  "name": "Spaniel Syndicate Wallet",
+  "short_name": "Spaniel Wallet",
+  "description": "Non-custodial Solana wallet for Spaniel Syndicate Series 1: rip packs, build your kennel, vote in the Rescue Pool, and battle friends in Spaniel Showdown.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#08070a",
+  "theme_color": "#08070a",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["finance", "games", "utilities"]
+}
