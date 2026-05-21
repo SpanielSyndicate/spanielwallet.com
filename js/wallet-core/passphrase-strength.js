@@ -60,13 +60,20 @@ const SPANIEL_BLOCKLIST = Object.freeze([
   'ethereum', 'passphrase', 'mnemonic', 'seed', 'recovery',
 ]);
 
-// Score thresholds (offline attacker, 1e10 hashes/sec).
-//   guesses < 1e3   → 0
-//   guesses < 1e6   → 1
-//   guesses < 1e8   → 2
-//   guesses < 1e10  → 3
-//   guesses >= 1e10 → 4
-const SCORE_THRESHOLDS = [1e3, 1e6, 1e8, 1e10];
+// Score thresholds calibrated to the OFFLINE crack-time we display.
+// At 1e10 hashes/sec (consumer GPU farm against an exfiltrated vault):
+//   < 1 minute        → 0 unusable      (guesses < 6e11)
+//   < 1 day           → 1 weak          (guesses < 8.64e14)
+//   < 1 year          → 2 fair          (guesses < 3.15e17)
+//   < 1000 years      → 3 strong        (guesses < 3.15e20)
+//   >= 1000 years     → 4 excellent
+//
+// Previously this used zxcvbn's online-attack thresholds (1e3..1e10),
+// which made strings like "abc1234567" score "strong" while the
+// offline crack-time caption said "instant" — same input, two
+// different stories. Aligning both to the offline threat model
+// removes that contradiction.
+const SCORE_THRESHOLDS = [6e11, 8.64e14, 3.15e17, 3.15e20];
 
 /**
  * Score a passphrase.
@@ -107,12 +114,12 @@ export function scorePassphrase(passphrase, opts = {}) {
       guesses: 0,
       crackTimeOffline: 'instant',
       passedHardFloors: false,
-      problems: ['Enter a passphrase.'],
+      problems: ['Enter a password.'],
       suggestions: [],
     };
   }
   if (pw.length < HARD_MIN_LENGTH) {
-    problems.push(`Passphrase must be at least ${HARD_MIN_LENGTH} characters (you have ${pw.length}).`);
+    problems.push(`Password must be at least ${HARD_MIN_LENGTH} characters (you have ${pw.length}).`);
   }
   const hasLower = /[a-z]/.test(pw);
   const hasUpper = /[A-Z]/.test(pw);
@@ -120,7 +127,7 @@ export function scorePassphrase(passphrase, opts = {}) {
   const hasSymbol = /[^A-Za-z0-9]/.test(pw);
   const looksLikeDiceware = /^[a-zA-Z]+([\s\-_][a-zA-Z]+){4,}$/.test(pw);
   if (!hasLower && !hasUpper) {
-    problems.push('Passphrase must contain at least one letter.');
+    problems.push('Password must contain at least one letter.');
   }
   if (!hasDigit && !hasSymbol) {
     if (!(acceptDiceware && looksLikeDiceware)) {
@@ -139,7 +146,7 @@ export function scorePassphrase(passphrase, opts = {}) {
   for (const u of userInputs) {
     if (typeof u !== 'string' || u.length < 3) continue;
     if (pw.toLowerCase().includes(u.toLowerCase())) {
-      problems.push(`Don't include your wallet label or address ("${u}") in the passphrase.`);
+      problems.push(`Don't include your wallet label or address ("${u}") in the password.`);
       break;
     }
   }
@@ -196,7 +203,7 @@ export function scorePassphrase(passphrase, opts = {}) {
     if (score < 3 && !hasSymbol) suggestions.push('Mixing in a symbol (e.g. ! @ $ -) raises the bar dramatically.');
     if (score < 3 && runs > 0) suggestions.push('Avoid runs of repeated letters or digits.');
     if (score < 3 && seq > 0) suggestions.push('Avoid sequences like 1234 or qwerty.');
-    if (score < 3) suggestions.push('Or use a 5+ word "diceware" passphrase — long random words beat short complex strings.');
+    if (score < 3) suggestions.push('Or try a 5+ word memorable phrase — long phrases beat short complex strings.');
   }
 
   return {

@@ -124,11 +124,11 @@ function renderCreatePane(target, ctx) {
   // multi-step flow (see wallet-create-flow.js / wallet-import-flow.js).
   target.innerHTML = `
     <h1 class="app-title">Spaniel Wallet</h1>
-    <p class="app-subtitle">A free, non-custodial Solana wallet that lives on this device. The server never sees your recovery phrase or passphrase. Spaniel Syndicate cannot recover either one for you — back up your recovery phrase the moment you create the wallet.</p>
+    <p class="app-subtitle">A free, non-custodial Solana wallet that lives on this device. The server never sees your recovery phrase or password. Spaniel Syndicate cannot recover either one for you — back up your recovery phrase the moment you create the wallet.</p>
 
     <section class="app-section">
       <h2 class="app-section-title">Create a new wallet</h2>
-      <p style="color: var(--muted); font-size: 13px; line-height: 1.5">Generates a fresh 12-word BIP-39 recovery phrase. You'll write it down, confirm a few words, and pick a passphrase that encrypts the wallet on this device.</p>
+      <p style="color: var(--muted); font-size: 13px; line-height: 1.5">Generates a fresh 12-word BIP-39 recovery phrase. You'll write it down, confirm a few words, and pick a password that encrypts the wallet on this device.</p>
       <div class="app-btn-row" style="margin-top: 12px">
         <button class="app-btn app-btn-primary" data-action="create" type="button">Create wallet</button>
       </div>
@@ -147,7 +147,7 @@ function renderCreatePane(target, ctx) {
       <ul style="color: var(--muted); font-size: 13px; line-height: 1.6; padding-left: 18px">
         <li><strong>BIP-39 + SLIP-10 ed25519</strong> at <code>m/44'/501'/0'/0'</code> — fully compatible with Phantom, Solflare, Backpack, Ledger.</li>
         <li><strong>AES-256-GCM + PBKDF2-SHA-256 600k iterations</strong> per-vault salt — modern KDF, on the same standard as MetaMask and Backpack.</li>
-        <li><strong>Strength-gated passphrase</strong> with hard floors, project-word blocklist, and a 30-second anti-shoulder-surfing reveal — stricter than MetaMask's 8-character minimum.</li>
+        <li><strong>Strength-gated password</strong> with hard floors, project-word blocklist, and a 30-second anti-shoulder-surfing reveal — stricter than MetaMask's 8-character minimum.</li>
         <li><strong>Forced 3-word backup quiz</strong> before the vault is written to disk. No skip button.</li>
       </ul>
     </section>
@@ -165,10 +165,10 @@ function renderCreatePane(target, ctx) {
 function renderUnlockPane(target, ctx) {
   target.innerHTML = `
     <h1 class="app-title">Unlock wallet</h1>
-    <p class="app-subtitle">Your encrypted vault is on this device. Enter your passphrase to unlock.</p>
+    <p class="app-subtitle">Your encrypted wallet lives on this device. Enter your password to unlock it.</p>
     <section class="app-section">
       <form id="unlockForm">
-        <label class="app-label" for="unlockPass">Passphrase</label>
+        <label class="app-label" for="unlockPass">Password</label>
         <input class="app-input" id="unlockPass" name="pass" type="password" autocomplete="current-password" required>
         <div style="height: 12px"></div>
         <button class="app-btn app-btn-primary" type="submit">Unlock</button>
@@ -176,8 +176,8 @@ function renderUnlockPane(target, ctx) {
       <p id="unlockError" class="app-pending" hidden></p>
     </section>
     <section class="app-section">
-      <h2 class="app-section-title">Forgot passphrase?</h2>
-      <p style="color: var(--muted); font-size: 13px">Spaniel Wallet has no recovery service. If you lost your passphrase, your only option is to wipe this wallet and restore from a previously-exported seed (or external wallet) on the Security page.</p>
+      <h2 class="app-section-title">Forgot your password?</h2>
+      <p style="color: var(--muted); font-size: 13px">Spaniel Wallet has no recovery service. If you've lost your password, your only option is to wipe this wallet and restore from your 12-word recovery phrase (or another wallet you've already exported) on the Security page.</p>
       <a class="app-btn app-btn-danger" href="/security/">Open Security</a>
     </section>
   `;
@@ -470,7 +470,7 @@ function escapeHtml(s) {
 }
 
 function friendlyError(e) {
-  if (e instanceof InvalidPassphraseError) return 'Wrong passphrase.';
+  if (e instanceof InvalidPassphraseError) return 'Wrong password.';
   if (e instanceof WalletError) return e.message;
   return e?.message || 'Something went wrong.';
 }

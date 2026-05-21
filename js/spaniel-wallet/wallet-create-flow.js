@@ -22,7 +22,7 @@ import { mountSrpReveal } from './srp-reveal.js';
 import { mountSrpQuiz } from './srp-quiz.js';
 import { attachRevealToggle } from './reveal-toggle.js';
 
-const STEPS = ['Passphrase', 'Learn', 'Reveal', 'Confirm', 'Done'];
+const STEPS = ['Password', 'Learn', 'Reveal', 'Confirm', 'Done'];
 
 /**
  * Mount the create-flow into `target`. The shell-supplied `ctx`
@@ -60,10 +60,10 @@ export async function mountCreateFlow(target, ctx, onComplete) {
   // ── Step 1: passphrase ───────────────────────────────────────
   function renderPassphrase(content) {
     content.innerHTML = `
-      <h2 class="app-section-title">Pick a passphrase</h2>
+      <h2 class="app-section-title">Pick a password</h2>
       <p class="onboard-lede">You'll type this each time you open Spaniel Wallet on this computer. It encrypts your wallet locally — we never see it and can't reset it for you. Your 12-word recovery phrase, coming up next, is the real backup.</p>
 
-      <label class="app-label" for="newPass">Passphrase</label>
+      <label class="app-label" for="newPass">Password</label>
       <input class="app-input" id="newPass" name="pass" type="password" autocomplete="new-password" placeholder="a sentence you'll remember">
       <div class="strength-meter" data-strength-meter data-score="0" style="display:none">
         ${[0,1,2,3,4].map(() => '<div class="strength-meter-bar"></div>').join('')}
@@ -72,9 +72,9 @@ export async function mountCreateFlow(target, ctx, onComplete) {
       <p class="strength-meter-problem" data-strength-problem hidden></p>
       <p class="strength-meter-suggestion" data-strength-suggestion hidden></p>
 
-      <p class="onboard-hint">A sentence you'll remember beats a random string. Five or more words is plenty — letters only is fine if it's long enough. Try something like <code>my niece named the dog rufus</code>, <code>three-cats-eating-quiet-pizza</code>, or <code>Coffee@7am keeps me human!</code></p>
+      <p class="onboard-hint">Long phrases beat clever passwords. Try <code>my niece named the dog rufus</code>, <code>three-cats-eating-quiet-pizza</code>, or <code>Coffee@7am keeps me human!</code></p>
 
-      <label class="app-label" for="newPass2" style="margin-top: 12px">Confirm passphrase</label>
+      <label class="app-label" for="newPass2" style="margin-top: 12px">Confirm password</label>
       <input class="app-input" id="newPass2" name="pass2" type="password" autocomplete="new-password">
       <p class="strength-meter-problem" data-confirm-problem hidden></p>
 
@@ -108,19 +108,29 @@ export async function mountCreateFlow(target, ctx, onComplete) {
       } else {
         meter.style.display = '';
         meter.dataset.score = String(r.score);
-        caption.textContent = `Strength: ${scoreLabel(r.score)} · ${r.crackTimeOffline} to crack offline.`;
-        caption.dataset.state = r.score >= 3 ? 'strong' : (r.score <= 1 ? 'weak' : '');
+        // When a hard-floor problem exists (too short, missing
+        // digit/symbol, blocklisted word) the actionable problem text
+        // is what the user needs — don't ALSO paint a strength caption
+        // that would read like a contradiction ("strong · instant to
+        // crack offline").
         if (r.problems.length) {
+          caption.textContent = '';
+          caption.dataset.state = '';
           problemEl.hidden = false; problemEl.textContent = r.problems[0];
-        } else { problemEl.hidden = true; }
-        if (r.suggestions.length) {
-          suggEl.hidden = false; suggEl.textContent = r.suggestions[0];
-        } else { suggEl.hidden = true; }
+          suggEl.hidden = true;
+        } else {
+          caption.textContent = `Strength: ${scoreLabel(r.score)} · ${r.crackTimeOffline} to crack offline.`;
+          caption.dataset.state = r.score >= 3 ? 'strong' : (r.score <= 1 ? 'weak' : '');
+          problemEl.hidden = true;
+          if (r.suggestions.length) {
+            suggEl.hidden = false; suggEl.textContent = r.suggestions[0];
+          } else { suggEl.hidden = true; }
+        }
       }
       let confirmOk = true;
       if (pw && pw2 && pw !== pw2) {
         confirmProblemEl.hidden = false;
-        confirmProblemEl.textContent = 'The two passphrases do not match.';
+        confirmProblemEl.textContent = "The two passwords don't match.";
         confirmOk = false;
       } else {
         confirmProblemEl.hidden = true;

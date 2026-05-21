@@ -14,7 +14,7 @@ import { describeMnemonicProblem } from '/js/wallet-core/mnemonic.js';
 import { scorePassphrase, scoreLabel } from '/js/wallet-core/passphrase-strength.js';
 import { attachRevealToggle } from './reveal-toggle.js';
 
-const STEPS = ['Paste', 'Passphrase', 'Done'];
+const STEPS = ['Paste', 'Password', 'Done'];
 
 /**
  * @param {HTMLElement} target
@@ -58,7 +58,7 @@ export async function mountImportFlow(target, ctx, onComplete) {
       <p class="strength-meter-problem" data-secret-problem hidden></p>
       <p class="strength-meter-caption" data-secret-caption></p>
       <div class="app-btn-row" style="margin-top: 12px">
-        <button class="app-btn app-btn-primary" data-next disabled type="button">Next: passphrase</button>
+        <button class="app-btn app-btn-primary" data-next disabled type="button">Next: password</button>
       </div>
     `;
     const ta = content.querySelector('#impSecret');
@@ -101,22 +101,19 @@ export async function mountImportFlow(target, ctx, onComplete) {
 
   function renderPassphrase(content) {
     content.innerHTML = `
-      <h2 class="app-section-title">Set a passphrase to encrypt the wallet on this device</h2>
-      <p style="color: var(--muted); font-size: 13px; line-height: 1.5">This passphrase is separate from your recovery phrase. It only encrypts the on-disk vault on THIS device — if you wipe + restore from your recovery phrase elsewhere, you'll set a new one.</p>
-      <label class="app-label" for="impPass">Passphrase</label>
-      <input class="app-input" id="impPass" type="password" autocomplete="new-password">
-      <div class="strength-meter" data-strength-meter data-score="0">
+      <h2 class="app-section-title">Set a password to encrypt this wallet on this device</h2>
+      <p class="onboard-lede">This password is separate from your recovery phrase — it only encrypts the wallet on this computer. If you wipe and restore from your recovery phrase elsewhere, you'll set a new one then.</p>
+      <label class="app-label" for="impPass">Password</label>
+      <input class="app-input" id="impPass" type="password" autocomplete="new-password" placeholder="a sentence you'll remember">
+      <div class="strength-meter" data-strength-meter data-score="0" style="display:none">
         ${[0,1,2,3,4].map(() => '<div class="strength-meter-bar"></div>').join('')}
       </div>
       <p class="strength-meter-caption" data-strength-caption></p>
       <p class="strength-meter-problem" data-strength-problem hidden></p>
-      <label class="app-label" for="impPass2" style="margin-top: 12px">Confirm passphrase</label>
+      <p class="onboard-hint">Long phrases beat clever passwords. Try <code>my niece named the dog rufus</code>, <code>three-cats-eating-quiet-pizza</code>, or <code>Coffee@7am keeps me human!</code></p>
+      <label class="app-label" for="impPass2" style="margin-top: 12px">Confirm password</label>
       <input class="app-input" id="impPass2" type="password" autocomplete="new-password">
       <p class="strength-meter-problem" data-confirm-problem hidden></p>
-      <label class="onboard-confirm">
-        <input type="checkbox" data-diceware>
-        <span>I'm using a 5+ word diceware passphrase.</span>
-      </label>
       <p class="strength-meter-problem" data-import-error hidden></p>
       <div class="app-btn-row" style="margin-top: 12px">
         <button class="app-btn" data-back type="button">Back</button>
@@ -127,7 +124,6 @@ export async function mountImportFlow(target, ctx, onComplete) {
     const pass2 = content.querySelector('#impPass2');
     attachRevealToggle(pass);
     attachRevealToggle(pass2);
-    const diceware = content.querySelector('[data-diceware]');
     const next = content.querySelector('[data-next]');
     const back = content.querySelector('[data-back]');
     const meter = content.querySelector('[data-strength-meter]');
@@ -137,22 +133,33 @@ export async function mountImportFlow(target, ctx, onComplete) {
     const importError = content.querySelector('[data-import-error]');
     function refresh() {
       const pw = pass.value; const pw2 = pass2.value;
-      const r = scorePassphrase(pw, { acceptDiceware: diceware.checked });
-      meter.dataset.score = String(r.score);
-      caption.textContent = pw ? `Strength: ${scoreLabel(r.score)} · ${r.crackTimeOffline} to crack offline.` : '';
-      caption.dataset.state = r.score >= 3 ? 'strong' : (r.score <= 1 ? 'weak' : '');
-      if (r.problems.length) { problemEl.hidden = false; problemEl.textContent = r.problems[0]; }
-      else { problemEl.hidden = true; }
+      const r = scorePassphrase(pw, { acceptDiceware: true });
+      if (pw.length === 0) {
+        meter.style.display = 'none';
+        caption.textContent = '';
+        problemEl.hidden = true;
+      } else {
+        meter.style.display = '';
+        meter.dataset.score = String(r.score);
+        if (r.problems.length) {
+          caption.textContent = '';
+          caption.dataset.state = '';
+          problemEl.hidden = false; problemEl.textContent = r.problems[0];
+        } else {
+          caption.textContent = `Strength: ${scoreLabel(r.score)} · ${r.crackTimeOffline} to crack offline.`;
+          caption.dataset.state = r.score >= 3 ? 'strong' : (r.score <= 1 ? 'weak' : '');
+          problemEl.hidden = true;
+        }
+      }
       let confirmOk = true;
       if (pw && pw2 && pw !== pw2) {
-        confirmProblemEl.hidden = false; confirmProblemEl.textContent = 'Passphrases do not match.';
+        confirmProblemEl.hidden = false; confirmProblemEl.textContent = "The two passwords don't match.";
         confirmOk = false;
       } else { confirmProblemEl.hidden = true; }
       next.disabled = !(r.passedHardFloors && r.score >= 3 && confirmOk && pw === pw2 && pw.length > 0);
     }
     pass.addEventListener('input', refresh);
     pass2.addEventListener('input', refresh);
-    diceware.addEventListener('change', refresh);
     refresh();
     back.addEventListener('click', () => { step = 0; render(); });
     next.addEventListener('click', async () => {

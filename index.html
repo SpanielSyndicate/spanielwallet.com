@@ -372,7 +372,7 @@
         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
       </svg>
       <h3>Encrypted at rest</h3>
-      <p>AES-256-GCM envelope, Argon2id-derived key. Your passphrase is your only way in.</p>
+      <p>AES-256-GCM envelope, Argon2id-derived key. Your password is your only way in.</p>
     </div>
   </div>
 </section>
@@ -403,7 +403,7 @@
     </div>
     <div class="feat">
       <h3>Idle auto-lock</h3>
-      <p>After 5 minutes of inactivity (or at OS lock) the in-memory key bytes are wiped. Passphrase required to unlock again.</p>
+      <p>After 5 minutes of inactivity (or at OS lock) the in-memory key bytes are wiped. Password required to unlock again.</p>
     </div>
   </div>
 </section>
@@ -414,12 +414,12 @@
 
   <details class="qa">
     <summary>Where is my seed phrase stored?</summary>
-    <p>Inside your browser, encrypted under your passphrase with AES-256-GCM (key derived via Argon2id). Nothing is sent to a server. The repository is the only thing that ever sees the source code; your secrets stay local.</p>
+    <p>Inside your browser, encrypted under your password with AES-256-GCM (key derived via Argon2id). Nothing is sent to a server. The repository is the only thing that ever sees the source code; your secrets stay local.</p>
   </details>
 
   <details class="qa">
-    <summary>What happens if I forget my passphrase?</summary>
-    <p>Your seed phrase is the only recovery. Without either your passphrase OR the original seed phrase, the funds are unrecoverable. Back the seed up somewhere safe (paper, metal plate, password manager) the moment you create a wallet — the wallet shows a 3-word verification quiz so you don't skip this step.</p>
+    <summary>What happens if I forget my password?</summary>
+    <p>Your 12-word recovery phrase is the only way back in. Without either your password OR the recovery phrase, the funds are unrecoverable. Back the recovery phrase up somewhere safe (paper, metal plate, password manager) the moment you create a wallet — the wallet shows a 3-word verification quiz so you don't skip this step.</p>
   </details>
 
   <details class="qa">

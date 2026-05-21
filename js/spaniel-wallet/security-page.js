@@ -19,7 +19,7 @@ export async function mount(target, ctx) {
       <h2 class="app-section-title">Non-custodial · client-side</h2>
       <ul style="margin: 0; padding-left: 18px; color: var(--ink);">
         <li>Private keys are generated on this device.</li>
-        <li>The vault is encrypted with AES-256-GCM under your passphrase (PBKDF2-SHA-256, 600k iterations).</li>
+        <li>The vault is encrypted with AES-256-GCM under your password (PBKDF2-SHA-256, 600k iterations).</li>
         <li>The Worker / API never receives your seed or your private key.</li>
         <li>Seeds are stored in IndexedDB. localStorage is not used.</li>
         <li>Service worker never caches vault data.</li>

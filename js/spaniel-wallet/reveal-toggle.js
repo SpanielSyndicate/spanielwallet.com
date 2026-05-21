@@ -36,7 +36,7 @@ export function attachRevealToggle(input) {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'app-input-reveal';
-  btn.setAttribute('aria-label', 'Show passphrase');
+  btn.setAttribute('aria-label', 'Show password');
   btn.setAttribute('aria-pressed', 'false');
   btn.innerHTML = EYE_SHOW;
   wrap.appendChild(btn);
@@ -46,7 +46,7 @@ export function attachRevealToggle(input) {
     revealed = !revealed;
     input.type = revealed ? 'text' : 'password';
     btn.setAttribute('aria-pressed', String(revealed));
-    btn.setAttribute('aria-label', revealed ? 'Hide passphrase' : 'Show passphrase');
+    btn.setAttribute('aria-label', revealed ? 'Hide password' : 'Show password');
     btn.innerHTML = revealed ? EYE_HIDE : EYE_SHOW;
   });
 
