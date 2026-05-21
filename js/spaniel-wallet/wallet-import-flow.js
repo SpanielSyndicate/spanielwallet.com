@@ -12,6 +12,7 @@
 import { importVault, saveVaultEnvelope, saveMeta } from '/js/wallet-core/vault.js';
 import { describeMnemonicProblem } from '/js/wallet-core/mnemonic.js';
 import { scorePassphrase, scoreLabel } from '/js/wallet-core/passphrase-strength.js';
+import { attachRevealToggle } from './reveal-toggle.js';
 
 const STEPS = ['Paste', 'Passphrase', 'Done'];
 
@@ -124,6 +125,8 @@ export async function mountImportFlow(target, ctx, onComplete) {
     `;
     const pass = content.querySelector('#impPass');
     const pass2 = content.querySelector('#impPass2');
+    attachRevealToggle(pass);
+    attachRevealToggle(pass2);
     const diceware = content.querySelector('[data-diceware]');
     const next = content.querySelector('[data-next]');
     const back = content.querySelector('[data-back]');

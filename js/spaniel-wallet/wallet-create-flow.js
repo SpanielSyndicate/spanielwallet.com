@@ -20,6 +20,7 @@ import { createVault, saveVaultEnvelope, saveMeta } from '/js/wallet-core/vault.
 import { scorePassphrase, scoreLabel } from '/js/wallet-core/passphrase-strength.js';
 import { mountSrpReveal } from './srp-reveal.js';
 import { mountSrpQuiz } from './srp-quiz.js';
+import { attachRevealToggle } from './reveal-toggle.js';
 
 const STEPS = ['Passphrase', 'Learn', 'Reveal', 'Confirm', 'Done'];
 
@@ -71,20 +72,11 @@ export async function mountCreateFlow(target, ctx, onComplete) {
       <p class="strength-meter-problem" data-strength-problem hidden></p>
       <p class="strength-meter-suggestion" data-strength-suggestion hidden></p>
 
+      <p class="onboard-hint">A sentence you'll remember beats a random string. Five or more words is plenty — letters only is fine if it's long enough. Try something like <code>my niece named the dog rufus</code>, <code>three-cats-eating-quiet-pizza</code>, or <code>Coffee@7am keeps me human!</code></p>
+
       <label class="app-label" for="newPass2" style="margin-top: 12px">Confirm passphrase</label>
       <input class="app-input" id="newPass2" name="pass2" type="password" autocomplete="new-password">
       <p class="strength-meter-problem" data-confirm-problem hidden></p>
-
-      <details class="onboard-tip">
-        <summary>Tip — what makes a good passphrase?</summary>
-        <p>A short sentence you'll remember beats a random string. Five or more words works great — letters only is fine if it's long enough. Examples that score "excellent":</p>
-        <ul>
-          <li><code>my niece named the dog rufus</code></li>
-          <li><code>three-cats-eating-quiet-pizza</code></li>
-          <li><code>Coffee@7am keeps me human!</code></li>
-        </ul>
-        <p class="onboard-tip-muted">Don't use these literal examples — write your own.</p>
-      </details>
 
       <div class="app-btn-row" style="margin-top: 12px">
         <button class="app-btn app-btn-primary" data-next disabled type="button">Next: recovery phrase →</button>
@@ -92,6 +84,8 @@ export async function mountCreateFlow(target, ctx, onComplete) {
     `;
     const passEl = content.querySelector('#newPass');
     const pass2El = content.querySelector('#newPass2');
+    attachRevealToggle(passEl);
+    attachRevealToggle(pass2El);
     const nextBtn = content.querySelector('[data-next]');
     const meter = content.querySelector('[data-strength-meter]');
     const caption = content.querySelector('[data-strength-caption]');
