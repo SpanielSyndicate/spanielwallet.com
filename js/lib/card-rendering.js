@@ -24,7 +24,7 @@ import {
 } from './card-front-art.js';
 import { renderCardBackSvg } from './card-back.js';
 
-export const CARD_RENDERING_VERSION = 'card-rendering-v2';
+export const CARD_RENDERING_VERSION = 'card-rendering-v3';
 
 /**
  * Build the front-side SVG. Art only.

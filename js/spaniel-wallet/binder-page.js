@@ -11,7 +11,7 @@
 // require explicit confirmation; severe-warning items must be
 // acknowledged before record.
 
-import { renderCardFrontSvg } from '/js/lib/card-rendering.js';
+import { renderCardFrontSvg } from '/js/lib/card-rendering.js?v=20260520-card-art';
 import { apiUrl } from './api-url.js';
 import { loadRuntimeConfig } from './runtime-config.js';
 import { makeRpcClient } from './rpc.js';

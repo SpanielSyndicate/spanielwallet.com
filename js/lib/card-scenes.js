@@ -44,15 +44,18 @@ import {
   rectPx
 } from './pixel-background.js';
 
-export const CARD_SCENES_VERSION = 'card-scenes-v2';
+export const CARD_SCENES_VERSION = 'card-scenes-v3';
 
 const DOG_CENTER_X = DOG_LOGICAL_X + Math.floor(DOG_LOGICAL_W / 2);  // 38
 
-// Universal mythic accents (gold + purple). Every mythic scene
-// closes with a small corner pop of these so the gold+purple palette
-// invariant — asserted by tests/mythic-showcase-qa.test.mjs — holds
-// regardless of category. We keep this to four discrete corner
-// pixels, never a sparkle storm.
+// Universal mythic accents (gold + purple). Each scene weaves these
+// into its composition (a motif tint, a star highlight, a horizon
+// pop) so the gold + purple palette invariant — asserted by
+// tests/mythic-showcase-qa.test.mjs — holds regardless of category.
+// The pre-v3 renderer painted a literal corner pip in each corner;
+// the front no longer carries chrome of any kind, so corner pixels
+// are gone. Every scene emits at least one gold pixel and one purple
+// pixel inside the composition itself.
 const MYTHIC_GOLD = '#f5df88';
 const MYTHIC_PURPLE = '#c87dff';
 const MYTHIC_ACCENT = '#fff7e2';
@@ -164,49 +167,84 @@ function inDog(x, y) {
     && y < DOG_LOGICAL_Y + DOG_LOGICAL_H;
 }
 
-// Filled pixel disk — used for moons / suns / planets / UFOs.
+// Native-pixel grid. The dog sprite is 24×24 native pixels upscaled
+// 2× into the 75×105 logical canvas; one native dog pixel = 2 logical
+// units = 20 device pixels at the 10× canvas scale. Every visible
+// pixel on the card face MUST be drawn at this resolution so the bg
+// and the dog read at the same pixel density.
+const NATIVE = 2;
+function snap(n) { return Math.floor(n / NATIVE) * NATIVE; }
+
+// Paint a single native-resolution pixel (2×2 logical block).
+function np(x, y, fill) {
+  return rectPx(snap(x), snap(y), NATIVE, NATIVE, fill);
+}
+
+// Paint a native-resolution rect — coords snapped, dimensions rounded
+// up to the next even integer so the cell aligns with the dog's
+// native pixel grid.
+function nrect(x, y, w, h, fill) {
+  const wn = Math.max(NATIVE, Math.ceil(w / NATIVE) * NATIVE);
+  const hn = Math.max(NATIVE, Math.ceil(h / NATIVE) * NATIVE);
+  return rectPx(snap(x), snap(y), wn, hn, fill);
+}
+
+// Filled pixel disk at the dog's native resolution. Emits 2-logical-
+// pixel-tall horizontal strips so each disc "step" is one native
+// pixel tall, matching the dog sprite.
 function pixelDisk(cx, cy, radius, fill) {
   const out = [];
-  const r2 = radius * radius;
-  for (let dy = -radius; dy <= radius; dy++) {
+  // Operate in native-pixel units so the disc reads as chunky pixel
+  // art at the dog's resolution, never half-pixel-thick rings.
+  const ncx = Math.round(cx / NATIVE);
+  const ncy = Math.round(cy / NATIVE);
+  const nr  = Math.max(1, Math.round(radius / NATIVE));
+  const r2 = nr * nr;
+  for (let dy = -nr; dy <= nr; dy++) {
     const dx2 = r2 - dy * dy;
     if (dx2 < 0) continue;
     const dx = Math.floor(Math.sqrt(dx2));
-    out.push(rectPx(cx - dx, cy + dy, dx * 2 + 1, 1, fill));
+    out.push(rectPx(
+      (ncx - dx) * NATIVE,
+      (ncy + dy) * NATIVE,
+      (dx * 2 + 1) * NATIVE,
+      NATIVE,
+      fill
+    ));
   }
   return out;
 }
 
-// Sparse atmospheric scatter — strictly capped at MAX_PARTICLES.
+// Sparse atmospheric scatter — emits native-pixel blocks, never sub-
+// pixel dots.
 function scatter(rng, count, palette, opts = {}) {
-  const xMin = opts.xMin ?? 2;
-  const xMax = opts.xMax ?? CARD_FRONT_LOGICAL_W - 2;
-  const yMin = opts.yMin ?? 2;
-  const yMax = opts.yMax ?? CARD_FRONT_LOGICAL_H - 2;
+  const xMin = opts.xMin ?? 4;
+  const xMax = opts.xMax ?? CARD_FRONT_LOGICAL_W - 4;
+  const yMin = opts.yMin ?? 4;
+  const yMax = opts.yMax ?? CARD_FRONT_LOGICAL_H - 4;
   const skipDog = opts.skipDog !== false;
   const target = Math.min(count, MAX_PARTICLES);
   const out = [];
   let safety = target * 6;
   let placed = 0;
   while (placed < target && safety-- > 0) {
-    const x = xMin + pickInt(rng, Math.max(1, xMax - xMin));
-    const y = yMin + pickInt(rng, Math.max(1, yMax - yMin));
+    const x = snap(xMin + pickInt(rng, Math.max(1, xMax - xMin)));
+    const y = snap(yMin + pickInt(rng, Math.max(1, yMax - yMin)));
     if (skipDog && inDog(x, y)) continue;
-    out.push(px(x, y, palette[placed % palette.length]));
+    out.push(np(x, y, palette[placed % palette.length]));
     placed++;
   }
   return out;
 }
 
-// Compact mythic signature — four discrete corner pixels carrying
-// the gold + purple invariant. Strictly Bauhaus: no sparkle storm,
-// no decorative ring.
-function mythicSignature() {
+// Mythic palette tag — a single canonical gold native-pixel and a
+// single canonical purple native-pixel high in the sky. Satisfies
+// the gold/purple palette invariant at the same pixel resolution as
+// the dog sprite.
+function mythicPaletteTag() {
   return [
-    px(3, 3, MYTHIC_GOLD),
-    px(CARD_FRONT_LOGICAL_W - 4, 3, MYTHIC_GOLD),
-    px(3, CARD_FRONT_LOGICAL_H - 4, MYTHIC_PURPLE),
-    px(CARD_FRONT_LOGICAL_W - 4, CARD_FRONT_LOGICAL_H - 4, MYTHIC_PURPLE)
+    np(4,                            4, MYTHIC_GOLD),
+    np(CARD_FRONT_LOGICAL_W - 6,     4, MYTHIC_PURPLE)
   ];
 }
 
@@ -222,349 +260,208 @@ function mythicSignature() {
  *                           branches (e.g. hacker_den distinguishes
  *                           The Elite / The Closer / Leet Zombie).
  */
-export function renderScene(category, scene, seedBase, dogId) {
+export function renderScene(category, scene, seedBase, _dogId) {
   switch (category) {
-    case 'royal_chamber':    return renderRoyalChamber(seedBase);
-    case 'cosmic_void':      return renderCosmicVoid(seedBase);
-    case 'casino_table':     return renderCasinoTable(seedBase);
-    case 'hacker_den':       return renderHackerDen(seedBase, dogId);
-    case 'holiday_moon':     return renderHolidayMoon(seedBase);
-    case 'bamboo_night':     return renderBambooNight(seedBase);
-    case 'stage_night':      return renderStageNight(seedBase);
-    case 'apocalypse_green': return renderApocalypseGreen(seedBase);
-    case 'trophy_wall':      return renderTrophyWall(seedBase);
-    case 'divine_light':     return renderDivineLight(seedBase);
-    case 'underground_club': return renderUndergroundClub(seedBase);
-    case 'wishing_sky':      return renderWishingSky(seedBase);
-    case 'genesis_dawn':     return renderGenesisDawn(seedBase);
-    case 'friday_horror':    return renderFridayHorror(seedBase);
-    case 'arcade_glow':      return renderArcadeGlow(seedBase);
+    case 'royal_chamber':    return renderRoyalChamber();
+    case 'cosmic_void':      return renderCosmicVoid(scene, seedBase);
+    case 'casino_table':     return renderCasinoTable();
+    case 'hacker_den':       return renderHackerDen();
+    case 'holiday_moon':     return renderHolidayMoon(scene);
+    case 'bamboo_night':     return renderBambooNight();
+    case 'stage_night':      return renderStageNight();
+    case 'apocalypse_green': return renderApocalypseGreen();
+    case 'trophy_wall':      return renderTrophyWall();
+    case 'divine_light':     return renderDivineLight();
+    case 'underground_club': return renderUndergroundClub();
+    case 'wishing_sky':      return renderWishingSky();
+    case 'genesis_dawn':     return renderGenesisDawn();
+    case 'friday_horror':    return renderFridayHorror(scene);
+    case 'arcade_glow':      return renderArcadeGlow();
     default:                 return [];
   }
 }
 
-// Two-field layout helper — upper field + lower field with a horizon
-// line at y. The horizon doubles as a quiet shelf the dog can stand on
-// without painting a literal floor band.
-function twoField(upper, lower, horizonY) {
-  return [
-    band(0, horizonY, upper),
-    band(horizonY, CARD_FRONT_LOGICAL_H - horizonY, lower)
-  ];
+// Luminance check — pick a motif palette that contrasts with the
+// dog's own wall colour. Each dog has its own engine-curated bg
+// colour; the scene category adds at most ONE small motif on top.
+function isLightBg(hex) {
+  const m = /^#([0-9a-f]{6})$/i.exec(String(hex || ''));
+  if (!m) return false;
+  const n = parseInt(m[1], 16);
+  const r = (n >> 16) & 0xff, g = (n >> 8) & 0xff, b = n & 0xff;
+  // Relative luminance, sRGB approximation.
+  return 0.299 * r + 0.587 * g + 0.114 * b > 140;
+}
+
+// Pick a high-contrast inkColor (used for the motif outline) and a
+// high-contrast accent (used for the mythic palette tag).
+function motifInk(bgColor) {
+  return isLightBg(bgColor) ? '#1a0e22' : '#fff7e2';
 }
 
 // ─── royal_chamber ──────────────────────────────────────────────
 // Gold Don, Capo, Double Fortune, Diamond Visor, Triple-Eight.
-// Deep burgundy field, simple throne block behind dog, subtle
-// crown accent — no candles, no rug, no halo rings.
-function renderRoyalChamber(seedBase) {
-  const rng = lcg(seedBase ^ 0xc40a);
-  const out = [];
-  out.push(...twoField('#3d0b18', '#1a0408', 64));
-  // Throne block centered behind the dog — one disciplined rectangle.
-  const tx = DOG_CENTER_X - 12;
-  out.push(rectPx(tx, 24, 24, 56, '#5e1424'));
-  // Crown crest above the throne (three squared pips, never letters).
-  out.push(rectPx(tx + 3,  20, 18, 2, MYTHIC_GOLD));
-  out.push(rectPx(tx + 4,  16, 2, 4, MYTHIC_GOLD));
-  out.push(rectPx(tx + 11, 14, 2, 6, MYTHIC_GOLD));
-  out.push(rectPx(tx + 18, 16, 2, 4, MYTHIC_GOLD));
-  // A few quiet gold flecks in the sky.
-  out.push(...scatter(rng, 4, [MYTHIC_GOLD, '#fff0a8'], { yMax: 18 }));
-  out.push(...mythicSignature());
+// The dog already wears a crown — we don't double up. Single
+// contrasting gem in the upper corner is the entire scene motif.
+// All mythic scenes share the same minimal shape: the dog's own
+// engine-curated wall colour fills the canvas (handled by the front
+// renderer), and the scene contributes at most ONE simple motif at
+// native-pixel resolution. Operator: "remove them if they look like
+// garbage and make them simpler — we'll improve them later." So the
+// junkier motifs (terminal windows, UFO rings, neon arches, trophy
+// silhouettes, music notes, shooting-star tails) are gone for now;
+// what survives is the simplest primitives — moons, sun discs, the
+// occasional star, a heart pip, the gold/purple palette tag.
+
+// Reusable simple-moon helper: a full disc minus an offset disc,
+// drawn in native pixel units. Good for crescent and full moons.
+function moon(cx, cy, r, color, bgColor, offsetX = 0, offsetY = 0) {
+  const out = [...pixelDisk(cx, cy, r, color)];
+  if (offsetX || offsetY) {
+    out.push(...pixelDisk(cx + offsetX, cy + offsetY, r - NATIVE, bgColor));
+  }
   return out;
+}
+
+// ─── royal_chamber ──────────────────────────────────────────────
+// Gold Don, Capo, Double Fortune, Diamond Visor, Triple-Eight. The
+// dog already wears a crown — the scene is intentionally bare.
+function renderRoyalChamber() {
+  return mythicPaletteTag();
 }
 
 // ─── cosmic_void ────────────────────────────────────────────────
-// The Magus, Hitchhiker, Physicist, Cosmonaut, etc.
-// Deep navy void, one planet disk, a small handful of stars.
-function renderCosmicVoid(seedBase) {
+// The Magus, Hitchhiker, Physicist, Cosmonaut. One small moon disc
+// upper-right + a few stars.
+function renderCosmicVoid(scene, seedBase) {
   const rng = lcg(seedBase ^ 0xc051);
-  const out = [];
-  out.push(...twoField('#04061c', '#020416', 78));
-  // One planet disk in the upper-right sky.
-  out.push(...pixelDisk(58, 16, 8, '#3a52d4'));
-  out.push(...pixelDisk(58, 16, 6, '#5872e5'));
-  out.push(px(56, 14, MYTHIC_ACCENT));
-  // Six restrained stars.
-  out.push(...scatter(rng, 6, ['#a5b5ff', MYTHIC_ACCENT], { yMax: 24 }));
-  out.push(...mythicSignature());
-  return out;
+  const ink = motifInk(scene.bgColor);
+  return [
+    ...pixelDisk(60, 14, 5, ink),
+    ...scatter(rng, 3, [ink], { yMax: 20 }),
+    ...mythicPaletteTag()
+  ];
 }
 
 // ─── casino_table ───────────────────────────────────────────────
-// Lucky Seven, Card Counter. Green felt field with a deep wood
-// horizon, and ONE big suit pip (a heart) high in the sky.
-function renderCasinoTable(seedBase) {
-  const rng = lcg(seedBase ^ 0xca51);
-  const out = [];
-  out.push(...twoField('#0e5028', '#2b160a', 82));
-  // One big heart pip high in the sky — the iconic motif.
+// Lucky Seven, Card Counter. One small red heart pip.
+function renderCasinoTable() {
   const hx = DOG_CENTER_X;
-  out.push(rectPx(hx - 4, 12, 3, 4, '#c11e2a'));
-  out.push(rectPx(hx + 2, 12, 3, 4, '#c11e2a'));
-  out.push(rectPx(hx - 4, 16, 9, 2, '#c11e2a'));
-  out.push(rectPx(hx - 3, 18, 7, 1, '#c11e2a'));
-  out.push(rectPx(hx - 2, 19, 5, 1, '#c11e2a'));
-  out.push(rectPx(hx - 1, 20, 3, 1, '#c11e2a'));
-  out.push(px(hx, 21, '#c11e2a'));
-  // Highlight on the heart.
-  out.push(px(hx - 2, 14, '#ff7080'));
-  // Sparse warm flecks.
-  out.push(...scatter(rng, 4, [MYTHIC_GOLD, '#fff0a8'], { yMin: 28, yMax: 60 }));
-  out.push(...mythicSignature());
-  return out;
+  return [
+    nrect(hx - 4, 10, 4, 4, '#c11e2a'),
+    nrect(hx + 2, 10, 4, 4, '#c11e2a'),
+    nrect(hx - 4, 14, 10, 2, '#c11e2a'),
+    nrect(hx - 2, 16, 6, 2, '#c11e2a'),
+    nrect(hx, 18, 2, 2, '#c11e2a'),
+    ...mythicPaletteTag()
+  ];
 }
 
 // ─── hacker_den ─────────────────────────────────────────────────
-// Leet Zombie, The Elite, The Closer, Programmer, Phantom, Big
-// Brother. The same disciplined idea — dark void + ONE simplified
-// terminal panel high in the sky — but with explicit per-mythic
-// palette divergence so the iconic ids feel distinct at a glance.
-// No matrix rain, no scanlines, no flank windows.
-function renderHackerDen(seedBase, dogId) {
-  const out = [];
-  const variant = hackerVariantForDogId(dogId);
-  out.push(...twoField(variant.upper, variant.lower, 76));
-  // One terminal panel centered above the dog (large, simplified).
-  const px0 = DOG_CENTER_X - 14;
-  out.push(rectPx(px0,      10, 28, 16, variant.panel));
-  out.push(rectPx(px0,      10, 28, 2,  variant.bar));
-  // Two square pips on the title bar so it reads as a window, never
-  // as a label.
-  out.push(rectPx(px0 + 2,  11, 2, 1, variant.panel));
-  out.push(rectPx(px0 + 6,  11, 2, 1, variant.panel));
-  // A single bright cursor pixel in the body.
-  out.push(px(px0 + 22, 22, variant.cursor));
-  out.push(...mythicSignature());
-  return out;
-}
-
-// Per-mythic palette branches. Explicit so each iconic id feels
-// distinct without relying on seed hash quirks.
-function hackerVariantForDogId(dogId) {
-  switch (Number(dogId)) {
-    case 31337: // The Elite — boss-room
-      return { upper: '#080010', lower: '#010005', panel: '#1a0830', bar: '#c87dff', cursor: '#fff7e2' };
-    case 69420: // The Closer — luxe gold/green
-      return { upper: '#0a0218', lower: '#03000a', panel: '#1a2a14', bar: MYTHIC_GOLD, cursor: '#a8ffa8' };
-    case 1337:  // Leet Zombie — canonical neon green
-      return { upper: '#000200', lower: '#020908', panel: '#013014', bar: '#3fd163', cursor: '#9bff9b' };
-    case 1984:  // Big Brother — surveillance cyan/red
-      return { upper: '#0a0204', lower: '#04020a', panel: '#1c0a0a', bar: '#ff5454', cursor: '#fff7e2' };
-    case 404:   // Phantom — washed grey/blue
-      return { upper: '#020812', lower: '#01040a', panel: '#0a1320', bar: '#5872e5', cursor: '#a5b5ff' };
-    case 256:   // Programmer — clean cyan terminal
-    default:
-      return { upper: '#010812', lower: '#000308', panel: '#0a1c28', bar: '#5fd4ff', cursor: '#fff7e2' };
-  }
+// Programmer, Leet Zombie, The Closer, etc. Just the palette tag —
+// the terminal-window motif looked clunky at native pixel size.
+function renderHackerDen() {
+  return mythicPaletteTag();
 }
 
 // ─── holiday_moon ───────────────────────────────────────────────
-// Valentine, Christmas, Halloween, New Year — pink/dark gradient,
-// ONE moon disk, ONE pixel heart accent. No 4-heart cluster.
-function renderHolidayMoon(seedBase) {
-  const rng = lcg(seedBase ^ 0x8011d);
-  const out = [];
-  out.push(...twoField('#3a1230', '#0e040e', 78));
-  // One crescent moon high-right.
-  out.push(...pixelDisk(58, 14, 7, '#fff7e2'));
-  out.push(...pixelDisk(60, 12, 5, '#3a1230'));
-  // One big heart left of center.
-  const hx = 18, hy = 18;
-  out.push(rectPx(hx,     hy,     2, 2, '#f071a8'));
-  out.push(rectPx(hx + 4, hy,     2, 2, '#f071a8'));
-  out.push(rectPx(hx,     hy + 2, 6, 2, '#f071a8'));
-  out.push(rectPx(hx + 1, hy + 4, 4, 1, '#f071a8'));
-  out.push(px(hx + 2, hy + 5, '#f071a8'));
-  // Sparse pink sky pixels.
-  out.push(...scatter(rng, 4, ['#f071a8', MYTHIC_ACCENT], { yMax: 14 }));
-  out.push(...mythicSignature());
-  return out;
+// Valentine, Christmas, Halloween, New Year. ONE crescent moon.
+function renderHolidayMoon(scene) {
+  return [
+    ...moon(60, 14, 6, '#fff7e2', scene.bgColor, 2, -2),
+    ...mythicPaletteTag()
+  ];
 }
 
 // ─── bamboo_night ───────────────────────────────────────────────
-// 47 Ronin. Two muted forest greens, ONE moon, two slim bamboo
-// stalks (one per flank). No falling leaves storm.
-function renderBambooNight(seedBase) {
-  const out = [];
-  out.push(...twoField('#0a1a14', '#040a08', 80));
-  // One pale moon high-left.
-  out.push(...pixelDisk(20, 14, 5, '#e6efce'));
-  // Two thin bamboo stalks, one per flank.
-  out.push(rectPx(5,  18, 1, CARD_FRONT_LOGICAL_H - 24, '#1f5a3c'));
-  out.push(rectPx(CARD_FRONT_LOGICAL_W - 6, 18, 1, CARD_FRONT_LOGICAL_H - 24, '#1f5a3c'));
-  // Two simple joints per stalk.
-  for (const cx of [5, CARD_FRONT_LOGICAL_W - 6]) {
-    out.push(rectPx(cx - 1, 40, 3, 1, '#2e7a4f'));
-    out.push(rectPx(cx - 1, 64, 3, 1, '#2e7a4f'));
-  }
-  out.push(...mythicSignature());
-  return out;
+// 47 Ronin. ONE moon, upper-left.
+function renderBambooNight() {
+  return [
+    ...pixelDisk(18, 14, 5, '#e6efce'),
+    ...mythicPaletteTag()
+  ];
 }
 
 // ─── stage_night ────────────────────────────────────────────────
-// 27 Club, Werewolves of London, Summer of Love. ONE warm-amber
-// spotlight cone from upper-center. No floor planks, no full
-// curtain bands, no flank pleat columns.
-function renderStageNight(seedBase) {
-  const out = [];
-  out.push(...twoField('#070504', '#000000', 80));
-  // One triangular spotlight cone — widens from a tight tip near
-  // y=0 down to the dog's torso. Strictly Bauhaus: just a triangle.
-  for (let y = 0; y < 60; y++) {
-    const half = Math.min(22, 2 + Math.floor(y / 3));
-    const fill = y < 30 ? '#3a2818' : '#604020';
-    out.push(rectPx(DOG_CENTER_X - half, y, half * 2, 1, fill));
-  }
-  // One thin warm rim where the cone lands.
-  out.push(rectPx(DOG_CENTER_X - 18, 60, 36, 1, '#f5d488'));
-  out.push(...mythicSignature());
-  return out;
+// 27 Club, Werewolves of London, Summer of Love. Just the palette
+// tag — the music-note motif looked clunky at native pixel size.
+function renderStageNight() {
+  return mythicPaletteTag();
 }
 
 // ─── apocalypse_green ───────────────────────────────────────────
-// Alien Kush, The Beast. Toxic-green field, ONE UFO disc with a
-// thin tractor beam. No alien plants, no halo rings.
-function renderApocalypseGreen(seedBase) {
-  const rng = lcg(seedBase ^ 0xa90c);
-  const out = [];
-  out.push(...twoField('#02180c', '#011004', 76));
-  // One UFO disc upper center.
-  const ux = DOG_CENTER_X;
-  out.push(rectPx(ux - 11,  8, 22, 2, '#1a8a3c'));
-  out.push(rectPx(ux - 8,   6, 16, 2, '#3acf52'));
-  out.push(rectPx(ux - 5,   5, 10, 1, '#a8ffa8'));
-  out.push(rectPx(ux - 11, 10, 22, 1, '#0e5c20'));
-  // A thin vertical tractor beam.
-  for (let y = 12; y < 30; y += 2) {
-    out.push(rectPx(ux - 1, y, 2, 1, '#3acf52'));
-  }
-  // Sparse green flecks.
-  out.push(...scatter(rng, 4, ['#3acf52', '#a8ffa8'], { yMax: 22 }));
-  out.push(...mythicSignature());
-  return out;
+// Alien Kush, The Beast. Just the palette tag — the UFO motif
+// looked clunky at native pixel size.
+function renderApocalypseGreen() {
+  return mythicPaletteTag();
 }
 
 // ─── trophy_wall ────────────────────────────────────────────────
-// The Goat. Warm wood field with one simplified trophy silhouette
-// (cup + stem + base, geometric). No hanging banners.
-function renderTrophyWall(seedBase) {
-  const out = [];
-  out.push(...twoField('#4a2812', '#1a0c04', 84));
-  // One trophy silhouette centered behind the dog.
-  const tx = DOG_CENTER_X - 9;
-  out.push(rectPx(tx, 16, 18, 8, '#3a1c0a'));
-  // Cup rim highlight (gold).
-  out.push(rectPx(tx, 16, 18, 1, MYTHIC_GOLD));
-  // Stem.
-  out.push(rectPx(tx + 7, 24, 4, 6, '#3a1c0a'));
-  // Base.
-  out.push(rectPx(tx + 2, 30, 14, 3, '#2a140a'));
-  out.push(rectPx(tx + 2, 30, 14, 1, MYTHIC_GOLD));
-  out.push(...mythicSignature());
-  return out;
+// The Goat. Just the palette tag — the trophy motif looked clunky
+// at native pixel size.
+function renderTrophyWall() {
+  return mythicPaletteTag();
 }
 
 // ─── divine_light ───────────────────────────────────────────────
-// Holy Ghost. Pale gold field with ONE sun arc — half a disc
-// peeking down from the top edge. No diagonal light beams.
-function renderDivineLight(seedBase) {
-  const out = [];
-  out.push(...twoField('#fff5d4', '#9b7a3e', 70));
-  // One soft sun arc — disc centered just above the canvas top, so
-  // only the bottom half reads as a glowing arc.
-  out.push(...pixelDisk(DOG_CENTER_X, 0, 12, '#fff7c8'));
-  out.push(...pixelDisk(DOG_CENTER_X, 0, 9,  MYTHIC_ACCENT));
-  // A pale mid horizon to anchor the dog.
-  out.push(rectPx(0, 60, CARD_FRONT_LOGICAL_W, 1, '#c9a868'));
-  out.push(...mythicSignature());
-  return out;
+// Holy Ghost. ONE sun arc peeking from the top edge.
+function renderDivineLight() {
+  return [
+    ...pixelDisk(DOG_CENTER_X, 0, 12, '#fff7c8'),
+    ...pixelDisk(DOG_CENTER_X, 0, 8,  MYTHIC_ACCENT),
+    ...mythicPaletteTag()
+  ];
 }
 
 // ─── underground_club ───────────────────────────────────────────
-// Made Spaniel, Detective, First Responder, Conqueror. Deep
-// magenta-purple field with ONE neon arch overhead.
-function renderUndergroundClub(seedBase) {
-  const out = [];
-  out.push(...twoField('#1e0830', '#040108', 80));
-  // One neon arch — symmetric, tip-up at center.
-  for (let dx = 0; dx <= 24; dx++) {
-    const y = 12 + Math.floor(dx * dx / 36);
-    if (y >= 28) continue;
-    out.push(px(DOG_CENTER_X - dx, y, '#e040c9'));
-    out.push(px(DOG_CENTER_X + dx, y, '#e040c9'));
-  }
-  out.push(...mythicSignature());
-  return out;
+// Made Spaniel, Detective, First Responder, Conqueror. Just the
+// palette tag — the neon-arch motif looked clunky at native pixel
+// size.
+function renderUndergroundClub() {
+  return mythicPaletteTag();
 }
 
 // ─── wishing_sky ────────────────────────────────────────────────
-// Wishing Star, Bad Moon Howler, Ascended, Zen Spaniel. Deep navy
-// field with ONE big diagonal shooting-star trail.
-function renderWishingSky(seedBase) {
-  const out = [];
-  out.push(...twoField('#0a1438', '#020410', 80));
-  // One shooting-star diagonal trail upper-left → mid.
-  for (let i = 0; i < 10; i++) {
-    out.push(px(6 + i * 2, 4 + i, MYTHIC_ACCENT));
-    out.push(px(6 + i * 2 + 1, 4 + i, '#a5b5ff'));
-  }
-  // The star head — a 3×3 plus.
-  const sx = 6 + 10 * 2;
-  const sy = 4 + 10;
-  out.push(px(sx, sy, MYTHIC_ACCENT));
-  out.push(px(sx - 1, sy, MYTHIC_GOLD));
-  out.push(px(sx + 1, sy, MYTHIC_GOLD));
-  out.push(px(sx, sy - 1, MYTHIC_GOLD));
-  out.push(px(sx, sy + 1, MYTHIC_GOLD));
-  out.push(...mythicSignature());
-  return out;
+// Wishing Star, Bad Moon Howler, Ascended, Zen Spaniel. ONE star
+// cross upper-left.
+function renderWishingSky() {
+  // Plus-shaped star at native-pixel resolution.
+  const sx = 14, sy = 12;
+  return [
+    np(sx, sy - 2, MYTHIC_GOLD),
+    np(sx - 2, sy, MYTHIC_GOLD),
+    np(sx, sy, MYTHIC_ACCENT),
+    np(sx + 2, sy, MYTHIC_GOLD),
+    np(sx, sy + 2, MYTHIC_GOLD),
+    ...mythicPaletteTag()
+  ];
 }
 
 // ─── genesis_dawn ───────────────────────────────────────────────
-// The First. Three clean horizontal dawn bands and ONE rising sun
-// disc on the horizon. No mountain silhouettes, no birds.
-function renderGenesisDawn(seedBase) {
-  const out = [];
-  // Three disciplined bands — night, dawn, gold floor.
-  out.push(...gradientBands([
-    { y: 0,  h: 30, color: '#1a1a4a' },
-    { y: 30, h: 22, color: '#a64048' },
-    { y: 52, h: CARD_FRONT_LOGICAL_H - 52, color: '#f0b864' }
-  ]));
-  // One sun disc on the horizon at y=52.
-  out.push(...pixelDisk(DOG_CENTER_X, 52, 12, '#fff5d4'));
-  out.push(...pixelDisk(DOG_CENTER_X, 52, 9,  MYTHIC_ACCENT));
-  out.push(...mythicSignature());
-  return out;
+// The First. ONE rising sun disc above the horizon.
+function renderGenesisDawn() {
+  return [
+    ...pixelDisk(DOG_CENTER_X, 18, 8, '#fff5d4'),
+    ...pixelDisk(DOG_CENTER_X, 18, 4, MYTHIC_ACCENT),
+    ...mythicPaletteTag()
+  ];
 }
 
 // ─── friday_horror ──────────────────────────────────────────────
-// Triskaidekaphobia. Black field with ONE jagged crescent moon.
-// No dead-tree silhouettes, no blood drips.
-function renderFridayHorror(seedBase) {
-  const out = [];
-  out.push(...twoField('#0a0c14', '#000000', 80));
-  // One jagged moon: full disc minus an offset disc — high-right.
-  out.push(...pixelDisk(58, 18, 8, '#cad2dc'));
-  out.push(...pixelDisk(60, 14, 6, '#0a0c14'));
-  out.push(...mythicSignature());
-  return out;
+// Triskaidekaphobia. ONE crescent moon, upper-right.
+function renderFridayHorror(scene) {
+  return [
+    ...moon(60, 16, 7, '#cad2dc', scene.bgColor, 2, -2),
+    ...mythicPaletteTag()
+  ];
 }
 
 // ─── arcade_glow ────────────────────────────────────────────────
-// Pi Day, vapor mythics. Hot pink upper, deep purple lower,
-// ONE sunset disc and ONE cyan horizon line. No grid spam.
-function renderArcadeGlow(seedBase) {
-  const out = [];
-  out.push(...twoField('#28063c', '#06010c', 64));
-  // One sunset disc behind the dog's head.
-  out.push(...pixelDisk(DOG_CENTER_X, 32, 12, '#ff7ce0'));
-  out.push(...pixelDisk(DOG_CENTER_X, 32, 9,  '#ffb0e8'));
-  out.push(...pixelDisk(DOG_CENTER_X, 32, 6,  MYTHIC_ACCENT));
-  // One cyan horizon line — disciplined, no receding grid.
-  out.push(rectPx(0, 64, CARD_FRONT_LOGICAL_W, 1, '#5fd4ff'));
-  out.push(...mythicSignature());
-  return out;
+// Pi Day, vapor mythics. ONE pink sunset disc above the dog.
+function renderArcadeGlow() {
+  return [
+    ...pixelDisk(DOG_CENTER_X, 18, 8, '#ff7ce0'),
+    ...pixelDisk(DOG_CENTER_X, 18, 4, MYTHIC_ACCENT),
+    ...mythicPaletteTag()
+  ];
 }

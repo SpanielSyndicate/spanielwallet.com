@@ -256,55 +256,6 @@ button:disabled {
   margin: 48px 0;
 }
 
-/* ── SPANIEL STRIPE ──────────────────────────────────────────────
- * Decorative horizontal accent built from a single 6144×24 sprite
- * (256 stride-sampled Spaniels laid end-to-end). One HTTP request
- * powers every stripe on every page; variants are pure CSS slices
- * via background-position. The native art is 24 px tall — pinning
- * the element to 24 px (or 48 px on desktop) keeps pixels aligned
- * with the sprite grid so nearest-neighbour scaling stays crisp.
- *
- * Use with `aria-hidden="true"` — purely decorative, no semantic
- * value to convey. Place inside .page or full-bleed; the stripe
- * reads as a tightly-packed dog tape that anchors a section break.
- */
-.spaniel-stripe {
-  display: block;
-  width: 100%;
-  height: 24px;
-  margin: 32px 0;
-  background-image: url(/img/stripe-sprite.png);
-  background-repeat: repeat-x;
-  background-position: 0 0;
-  background-size: auto 24px;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-  /* Top/bottom hairline ties the stripe to the surrounding 2px
-   * borders elsewhere in the layout. */
-  border-top: 1px solid var(--soft-line);
-  border-bottom: 1px solid var(--soft-line);
-}
-/* Slice offsets — each variant exposes a different slab of the
- * 256-tile sprite so adjacent stripes on the same page never look
- * like the same tape. Negative X shifts the sprite left under the
- * viewport. */
-.spaniel-stripe--alt1 { background-position: -1536px 0; }
-.spaniel-stripe--alt2 { background-position: -3072px 0; }
-.spaniel-stripe--alt3 { background-position: -4608px 0; }
-
-/* Desktop: scale the sprite 2× so the dogs are legible at TV
- * distances. 48 px tall × 12288 px wide tile; the browser keeps
- * pixel-perfect upscaling because of image-rendering: pixelated. */
-@media (min-width: 880px) {
-  .spaniel-stripe {
-    height: 48px;
-    background-size: auto 48px;
-  }
-  .spaniel-stripe--alt1 { background-position: -3072px 0; }
-  .spaniel-stripe--alt2 { background-position: -6144px 0; }
-  .spaniel-stripe--alt3 { background-position: -9216px 0; }
-}
-
 .section {
   margin: 32px 0;
 }
@@ -1044,9 +995,10 @@ footer {
 }
 .hero-syndicate-art-frame {
   position: relative;
-  padding: 18px;
-  background: var(--panel);
-  border: 2px solid var(--line);
+  /* No panel chrome around the card. The card art carries itself —
+   * an outer panel + border would re-introduce the "card pasted into
+   * a frame" UI feeling that the front renderer was rebuilt to
+   * avoid. */
 }
 .hero-syndicate-art-frame canvas#spanielPreview {
   display: block;
@@ -1102,27 +1054,23 @@ footer {
 }
 .mythic-card {
   margin: 0;
-  padding: 12px;
-  background: var(--panel);
-  border: 2px solid var(--line);
+  padding: 0;
+  background: transparent;
+  border: none;
   position: relative;
   min-width: 0;
-  transition: background .12s ease, color .12s ease;
+  transition: transform .15s ease;
 }
 .mythic-card:hover {
-  background: var(--accent);
-}
-.mythic-card:hover figcaption strong,
-.mythic-card:hover figcaption span {
-  color: #0b0a08;
+  transform: translateY(-2px);
 }
 .mythic-card img {
   display: block;
   width: 100%;
-  aspect-ratio: 1;
+  aspect-ratio: 2.5 / 3.5;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
-  background: #1a1820;
+  background: transparent;
 }
 .mythic-card figcaption {
   margin-top: 10px;

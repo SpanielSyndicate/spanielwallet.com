@@ -12,7 +12,7 @@
 //   §0 — sharp pixel/card geometry, no UI on the front
 //   §2.16 — metadata schema (the back, not the front, carries text)
 
-export const PIXEL_BACKGROUND_VERSION = 'pixel-background-v1';
+export const PIXEL_BACKGROUND_VERSION = 'pixel-background-v2';
 
 // Logical pixel canvas — 5:7 ratio = the canonical trading-card 2.5:3.5
 // proportion at integer scale. Each logical pixel renders to a 10×10
@@ -124,6 +124,24 @@ function rectPx(x, y, w, h, fill) {
 // ─── Atmospheric extension ────────────────────────────────────────
 
 /**
+ * Emit the full-card background for ordinary card fronts. Just the
+ * dog's own wall colour painted flat across the whole canvas, plus
+ * a sparse motif if the bgKind asks for one (a few stars, a few
+ * shimmer flecks). No bands, no edge strips, no center-light
+ * diamond, no dither — the dog reads against a clean field, exactly
+ * the way the pixel art was authored.
+ *
+ * @param {{ bgColor: string, bgKind: string, bgSeed: number }} scene
+ * @returns {string[]} array of SVG fragments
+ */
+export function cardBackdropPixels(scene) {
+  const out = [];
+  out.push(rectPx(0, 0, CARD_FRONT_LOGICAL_W, CARD_FRONT_LOGICAL_H, scene.bgColor));
+  out.push(...atmosphericPixels(scene));
+  return out;
+}
+
+/**
  * Emit the per-bgKind atmospheric pixel layer (stars, grid, holo
  * shimmer) painted on top of the solid bg fill.
  *
@@ -139,33 +157,29 @@ export function atmosphericPixels(scene) {
   }
 }
 
+// Native-pixel grid — every card-face pixel must be the same size
+// as one dog-sprite native pixel (2 logical units). Without this,
+// atmospheric stars + shimmer render at half the pixel size of the
+// dog and the card reads as two different pixel ratios stitched
+// together.
+const NATIVE = 2;
+function snap(n) { return Math.floor(n / NATIVE) * NATIVE; }
+function nativePx(x, y, fill) {
+  return rectPx(snap(x), snap(y), NATIVE, NATIVE, fill);
+}
+
 function nightStars(seed) {
   const rng = lcg(seed ^ 0xa11e5);
   const out = [];
   const starHi = '#fff7e2';
   const starMid = '#cfd8e8';
-  const starLow = '#7c8aa8';
-  // Stars in the "sky" band (y < dog top) and a few in the upper
-  // half of the floor band. Keep clear of the dog's body area
-  // (x∈[14,62), y∈[32,80)) so the dog reads cleanly against bg.
-  const candidates = [];
-  for (let y = 1; y < 30; y++) {
-    for (let x = 1; x < CARD_FRONT_LOGICAL_W - 1; x++) {
-      candidates.push([x, y]);
-    }
-  }
-  // 28 stars sprinkled deterministically.
-  const TARGET = 28;
-  const seen = new Set();
-  for (let i = 0; i < TARGET; i++) {
-    const idx = pickInt(rng, candidates.length);
-    const key = `${candidates[idx][0]},${candidates[idx][1]}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    const [x, y] = candidates[idx];
-    const tier = i % 6;
-    const color = tier < 2 ? starHi : tier < 4 ? starMid : starLow;
-    out.push(px(x, y, color));
+  let placed = 0;
+  let safety = 30;
+  while (placed < 6 && safety-- > 0) {
+    const x = 4 + pickInt(rng, CARD_FRONT_LOGICAL_W - 8);
+    const y = 4 + pickInt(rng, Math.max(1, DOG_LOGICAL_Y - 8));
+    out.push(nativePx(x, y, placed % 3 === 0 ? starHi : starMid));
+    placed++;
   }
   return out;
 }
@@ -173,28 +187,11 @@ function nightStars(seed) {
 function vaporGrid(seed) {
   const rng = lcg(seed ^ 0x91d10);
   const out = [];
-  const line = '#6e3fb0';
-  const accent = '#ff7ce0';
-  // Horizon line at y=58 — the canonical vaporwave grid horizon.
-  out.push(rectPx(0, 58, CARD_FRONT_LOGICAL_W, 1, line));
-  // Receding horizontal grid lines (perspective).
-  for (let i = 1; i <= 4; i++) {
-    const y = 58 + i * 4;
-    if (y >= CARD_FRONT_LOGICAL_H - 1) break;
-    out.push(rectPx(0, y, CARD_FRONT_LOGICAL_W, 1, line));
-  }
-  // Receding vertical grid columns (perspective ⇒ converging on cx).
-  const cx = Math.floor(CARD_FRONT_LOGICAL_W / 2);
-  for (let i = 1; i <= 6; i++) {
-    const dx = i * 5;
-    out.push(rectPx(cx - dx, 58, 1, CARD_FRONT_LOGICAL_H - 58, line));
-    out.push(rectPx(cx + dx, 58, 1, CARD_FRONT_LOGICAL_H - 58, line));
-  }
-  // Accent star above the horizon.
-  for (let i = 0; i < 4; i++) {
+  out.push(rectPx(0, snap(60), CARD_FRONT_LOGICAL_W, NATIVE, '#6e3fb0'));
+  for (let i = 0; i < 3; i++) {
     const x = 4 + pickInt(rng, CARD_FRONT_LOGICAL_W - 8);
-    const y = 4 + pickInt(rng, 24);
-    out.push(px(x, y, accent));
+    const y = 4 + pickInt(rng, 20);
+    out.push(nativePx(x, y, '#ff7ce0'));
   }
   return out;
 }
@@ -202,18 +199,14 @@ function vaporGrid(seed) {
 function holoShimmer(seed) {
   const rng = lcg(seed ^ 0xd1bbed);
   const out = [];
-  const palette = ['#f0c4ff', '#c4e1ff', '#fff7e2', '#bff5e0', '#fce0c4'];
-  // Sprinkle 24 shimmer pixels across the bg, biased to corners.
-  for (let i = 0; i < 24; i++) {
-    const x = pickInt(rng, CARD_FRONT_LOGICAL_W);
-    const y = pickInt(rng, CARD_FRONT_LOGICAL_H);
-    // Skip the dog sprite footprint.
-    if (x >= DOG_LOGICAL_X && x < DOG_LOGICAL_X + DOG_LOGICAL_W
-      && y >= DOG_LOGICAL_Y && y < DOG_LOGICAL_Y + DOG_LOGICAL_H) {
-      continue;
-    }
-    const color = palette[pickInt(rng, palette.length)];
-    out.push(px(x, y, color));
+  const palette = ['#f0c4ff', '#c4e1ff', '#fff7e2', '#bff5e0'];
+  let placed = 0;
+  let safety = 30;
+  while (placed < 6 && safety-- > 0) {
+    const x = 4 + pickInt(rng, CARD_FRONT_LOGICAL_W - 8);
+    const y = 4 + pickInt(rng, Math.max(1, DOG_LOGICAL_Y - 8));
+    out.push(nativePx(x, y, palette[placed % palette.length]));
+    placed++;
   }
   return out;
 }

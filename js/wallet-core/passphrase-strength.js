@@ -124,7 +124,7 @@ export function scorePassphrase(passphrase, opts = {}) {
   }
   if (!hasDigit && !hasSymbol) {
     if (!(acceptDiceware && looksLikeDiceware)) {
-      problems.push('Add at least one number OR symbol (or check "I\'m using a 5+ word passphrase" if you have a diceware-style phrase).');
+      problems.push('Add a number or symbol — or turn it into a 5+ word phrase (e.g. "three-cats-eating-quiet-pizza") and the all-letter form is fine.');
     }
   }
   if (COMMON_TOP_50.includes(pw.toLowerCase())) {

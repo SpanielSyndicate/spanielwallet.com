@@ -60,11 +60,11 @@ export async function mountCreateFlow(target, ctx, onComplete) {
   function renderPassphrase(content) {
     content.innerHTML = `
       <h2 class="app-section-title">Pick a passphrase</h2>
-      <p style="color: var(--muted); font-size: 13px; line-height: 1.5">This passphrase encrypts your wallet on THIS device. Spaniel Syndicate cannot reset it. Pick something memorable and hard to guess.</p>
+      <p class="onboard-lede">You'll type this each time you open Spaniel Wallet on this computer. It encrypts your wallet locally — we never see it and can't reset it for you. Your 12-word recovery phrase, coming up next, is the real backup.</p>
 
       <label class="app-label" for="newPass">Passphrase</label>
-      <input class="app-input" id="newPass" name="pass" type="password" autocomplete="new-password">
-      <div class="strength-meter" data-strength-meter data-score="0">
+      <input class="app-input" id="newPass" name="pass" type="password" autocomplete="new-password" placeholder="a sentence you'll remember">
+      <div class="strength-meter" data-strength-meter data-score="0" style="display:none">
         ${[0,1,2,3,4].map(() => '<div class="strength-meter-bar"></div>').join('')}
       </div>
       <p class="strength-meter-caption" data-strength-caption></p>
@@ -75,24 +75,23 @@ export async function mountCreateFlow(target, ctx, onComplete) {
       <input class="app-input" id="newPass2" name="pass2" type="password" autocomplete="new-password">
       <p class="strength-meter-problem" data-confirm-problem hidden></p>
 
-      <label class="onboard-confirm">
-        <input type="checkbox" data-diceware>
-        <span>I'm using a 5+ word "diceware" passphrase (allows all-letter phrases longer than 30 characters).</span>
-      </label>
-
-      <label class="onboard-confirm">
-        <input type="checkbox" data-ack-irrecoverable>
-        <span>I understand Spaniel Syndicate <strong>cannot</strong> reset this passphrase. If I lose it I must restore the wallet from the 12-word recovery phrase I'm about to write down.</span>
-      </label>
+      <details class="onboard-tip">
+        <summary>Tip — what makes a good passphrase?</summary>
+        <p>A short sentence you'll remember beats a random string. Five or more words works great — letters only is fine if it's long enough. Examples that score "excellent":</p>
+        <ul>
+          <li><code>my niece named the dog rufus</code></li>
+          <li><code>three-cats-eating-quiet-pizza</code></li>
+          <li><code>Coffee@7am keeps me human!</code></li>
+        </ul>
+        <p class="onboard-tip-muted">Don't use these literal examples — write your own.</p>
+      </details>
 
       <div class="app-btn-row" style="margin-top: 12px">
-        <button class="app-btn app-btn-primary" data-next disabled type="button">Next: recovery phrase</button>
+        <button class="app-btn app-btn-primary" data-next disabled type="button">Next: recovery phrase →</button>
       </div>
     `;
     const passEl = content.querySelector('#newPass');
     const pass2El = content.querySelector('#newPass2');
-    const dicewareEl = content.querySelector('[data-diceware]');
-    const ackEl = content.querySelector('[data-ack-irrecoverable]');
     const nextBtn = content.querySelector('[data-next]');
     const meter = content.querySelector('[data-strength-meter]');
     const caption = content.querySelector('[data-strength-caption]');
@@ -103,20 +102,27 @@ export async function mountCreateFlow(target, ctx, onComplete) {
     function refresh() {
       const pw = passEl.value;
       const pw2 = pass2El.value;
-      const diceware = dicewareEl.checked;
-      const ack = ackEl.checked;
-      const r = scorePassphrase(pw, { acceptDiceware: diceware });
-      meter.dataset.score = String(r.score);
-      caption.textContent = pw
-        ? `Strength: ${scoreLabel(r.score)} · would take ${r.crackTimeOffline} to crack offline.`
-        : '';
-      caption.dataset.state = r.score >= 3 ? 'strong' : (r.score <= 1 ? 'weak' : '');
-      if (r.problems.length) {
-        problemEl.hidden = false; problemEl.textContent = r.problems[0];
-      } else { problemEl.hidden = true; }
-      if (r.suggestions.length) {
-        suggEl.hidden = false; suggEl.textContent = r.suggestions[0];
-      } else { suggEl.hidden = true; }
+      // Auto-accept diceware-style entries (5+ alpha-only words). The
+      // strength estimator's own regex gates this; users no longer need
+      // to opt in via a checkbox.
+      const r = scorePassphrase(pw, { acceptDiceware: true });
+      if (pw.length === 0) {
+        meter.style.display = 'none';
+        caption.textContent = '';
+        problemEl.hidden = true;
+        suggEl.hidden = true;
+      } else {
+        meter.style.display = '';
+        meter.dataset.score = String(r.score);
+        caption.textContent = `Strength: ${scoreLabel(r.score)} · ${r.crackTimeOffline} to crack offline.`;
+        caption.dataset.state = r.score >= 3 ? 'strong' : (r.score <= 1 ? 'weak' : '');
+        if (r.problems.length) {
+          problemEl.hidden = false; problemEl.textContent = r.problems[0];
+        } else { problemEl.hidden = true; }
+        if (r.suggestions.length) {
+          suggEl.hidden = false; suggEl.textContent = r.suggestions[0];
+        } else { suggEl.hidden = true; }
+      }
       let confirmOk = true;
       if (pw && pw2 && pw !== pw2) {
         confirmProblemEl.hidden = false;
@@ -125,12 +131,10 @@ export async function mountCreateFlow(target, ctx, onComplete) {
       } else {
         confirmProblemEl.hidden = true;
       }
-      nextBtn.disabled = !(r.passedHardFloors && r.score >= 3 && confirmOk && pw === pw2 && pw.length > 0 && ack);
+      nextBtn.disabled = !(r.passedHardFloors && r.score >= 3 && confirmOk && pw === pw2 && pw.length > 0);
     }
     passEl.addEventListener('input', refresh);
     pass2El.addEventListener('input', refresh);
-    dicewareEl.addEventListener('change', refresh);
-    ackEl.addEventListener('change', refresh);
     refresh();
 
     nextBtn.addEventListener('click', () => {

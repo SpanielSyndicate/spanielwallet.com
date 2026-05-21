@@ -41,8 +41,7 @@ import {
   DOG_LOGICAL_Y,
   DOG_FEET_LINE_Y,
   resolveScene,
-  atmosphericPixels,
-  footShadow,
+  cardBackdropPixels,
   fnv32,
   lcg,
   pickInt,
@@ -54,30 +53,12 @@ import {
   renderScene as renderMythicScene
 } from './card-scenes.js';
 
-export const CARD_FRONT_ART_VERSION = 'card-front-art-v4';
+export const CARD_FRONT_ART_VERSION = 'card-front-art-v6';
 
-// Variants that ship a coloured 1-px logical outer edge, keyed to their
-// accent colour. Base/generic ship NO frame — the artwork breathes.
-// The earlier v1 also painted an inner accent rectangle one pixel
-// inside the outer frame; that traced a panel boundary inside the
-// card and read as UI. v2 drops the inner rectangle entirely. Corner
-// pips remain because they're discrete 2×2 squares, not a rectangle.
-const FRAME_PALETTES = Object.freeze({
-  base:      null,
-  generic:   null,
-  bronze:    { color: '#c98a48', pips: 2 },
-  silver:    { color: '#d9d9d9', pips: 2 },
-  refractor: { color: '#c87dff', pips: 0 },
-  holo:      { color: '#5fd4ff', pips: 0 },
-  holiday:   { color: '#ff7d9e', pips: 0 },
-  sparkle:   { color: '#f5df88', pips: 0 },
-  plate:     { color: '#ffffff', pips: 4 },
-  gold:      { color: '#f5b500', pips: 4 },
-  error:     { color: '#f06262', pips: 0 },
-  black:     { color: '#cfcfcf', pips: 4 },
-  mythic:    { color: '#f5df88', pips: 4 },
-  mythic_insert: { color: '#ff7d9e', pips: 4 }
-});
+// THE FRONT IS PURE ART. No frame, no corner pips, no corner ornaments,
+// no chrome of any kind on any variant. Every Spaniel ships the same
+// way: dog + scene + variant atmosphere. Rarity, variant label, and
+// authentication markers all live on the back (card-back.js).
 
 const HOLIDAY_MOTIF = Object.freeze({
   valentine: { color: '#f071a8', spark: '#fff7e2' },
@@ -135,15 +116,14 @@ export function renderCardFrontArtSvg(cardKey, opts = {}) {
 
   const layers = [];
 
-  // Layer 1 — solid background fill (one rectangle covering the whole
-  // logical canvas). For the `black` variant the fill is true black
-  // so the dog reads against the void. For scene-driven mythics the
-  // scene's gradient bands repaint this completely; we still emit
-  // the base fill so any tiny gap between band rows reads as the
-  // scene's mid-tone rather than the dog's bg colour.
-  const baseBg = variant === 'black'
-    ? '#000000'
-    : (sceneCategory ? '#0a0810' : scene.bgColor);
+  // Layer 1 — solid background fill. Every card front is now a
+  // single flat colour: the dog's own engine-curated wall colour
+  // for standards, generics, inserts, AND mythics. For the `black`
+  // variant the fill is true black so the dog reads against the
+  // void. Scenes no longer override the bg — they layer a small
+  // motif on top so the dog's canonical colour palette is the
+  // foundation, never something the renderer fights against.
+  const baseBg = variant === 'black' ? '#000000' : scene.bgColor;
   layers.push(rectPx(0, 0, CARD_FRONT_LOGICAL_W, CARD_FRONT_LOGICAL_H, baseBg));
 
   // Layer 2a — premium scene composition for mythic dogs with an
@@ -154,10 +134,12 @@ export function renderCardFrontArtSvg(cardKey, opts = {}) {
   if (sceneCategory && variant !== 'plate') {
     layers.push(...renderMythicScene(sceneCategory, scene, seedBase, parsed.dogId));
   } else if (variant !== 'plate') {
-    // Layer 2b — atmospheric extension (stars/grid/holo shimmer for
-    // the bg kind the engine token carried). Plate variant skips
-    // this so the CMYK separation reads pure.
-    layers.push(...atmosphericPixels(scene));
+    // Layer 2b — full-card background extrapolation for standard /
+    // generic / insert fronts. This expands the dog's wall colour
+    // across the whole 2.5:3.5 face with ordered pixel bands and
+    // center light, rather than leaving a flat field behind a bust.
+    // Plate variant skips this so the CMYK separation reads pure.
+    layers.push(...cardBackdropPixels(scene));
   }
 
   // Layer 3 — plate tint overlay (CMYK separation feel).
@@ -171,13 +153,9 @@ export function renderCardFrontArtSvg(cardKey, opts = {}) {
   // logical bounds.
   layers.push(...variantUnderlay(parsed, scene, seedBase, sceneCategory));
 
-  // Layer 5 — small foot shadow blobs directly under the dog's feet.
-  // Three discrete shadow blobs (not a full-card horizontal row) so
-  // the dog reads as "standing in the scene" without painting a
-  // shelf line.
-  layers.push(...footShadow(scene));
-
-  // Layer 6 — the foreground dog sprite. The exporter / Worker MUST
+  // Layer 5 — the foreground dog sprite. The retired foot-shadow
+  // blob layer painted tan pixels beneath the dog that read as
+  // visual noise on a clean single-colour bg; it's gone. The exporter / Worker MUST
   // supply a background-masked PNG (alpha = 0 on wall pixels) so the
   // 24×24 sprite has no visible inner square. When no art is supplied
   // (engine self-render or audit sweep without art), the dog layer is
@@ -191,15 +169,10 @@ export function renderCardFrontArtSvg(cardKey, opts = {}) {
     );
   }
 
-  // Layer 7 — variant overlay (gold corner ornaments, error
-  // misregistration, holo scanlines on top of the dog, mythic
-  // sparkles). Same rule — no rectangle that traces the dog footprint.
+  // Layer 7 — variant overlay (error misregistration, holo scanlines
+  // on top of the dog). No corner ornaments, no corner pips — the
+  // front carries no chrome.
   layers.push(...variantOverlay(parsed, scene, seedBase));
-
-  // Layer 8 — outermost frame. Sharp single-pixel-logical outer edge
-  // for rarer variants + corner pips. The earlier inner-accent line
-  // is removed — it traced a panel inside the card and read as UI.
-  layers.push(...framePixels(parsed));
 
   return wrapSvg(parsed, layers, sceneCategory);
 }
@@ -252,12 +225,8 @@ function variantUnderlay(parsed, scene, seedBase, sceneCategory) {
 
 function variantOverlay(parsed, scene, seedBase) {
   switch (parsed.variant) {
-    case 'gold':    return goldCornerOrnaments(scene);
-    case 'mythic':  return mythicSparkleOverlay(scene, seedBase);
-    case 'mythic_insert': return mythicInsertCornerPips(scene);
     case 'holo':    return holoScanlines(scene, 'over');
     case 'error':   return errorMisregistration(scene, seedBase);
-    case 'sparkle': return sparkleStarOverlay(scene, seedBase);
     default:        return [];
   }
 }
@@ -300,23 +269,6 @@ function sparklePixels(scene, seedBase) {
   return out;
 }
 
-function sparkleStarOverlay(scene, seedBase) {
-  const rng = lcg(seedBase ^ 0x55aa);
-  const out = [];
-  const accent = '#fff7e2';
-  // Two accent dots — quiet finish.
-  let placed = 0;
-  let safety = 20;
-  while (placed < 2 && safety-- > 0) {
-    const x = 4 + pickInt(rng, CARD_FRONT_LOGICAL_W - 8);
-    const y = 4 + pickInt(rng, CARD_FRONT_LOGICAL_H - 8);
-    if (inDog(x, y)) continue;
-    out.push(px(x, y, accent));
-    placed++;
-  }
-  return out;
-}
-
 function holoScanlines(scene, layer) {
   const out = [];
   const cool = '#7dd9ff';
@@ -328,39 +280,21 @@ function holoScanlines(scene, layer) {
   return out;
 }
 
-// Mythic atmosphere — only used when no scene category is assigned.
-// Four discrete corner-anchor sparkles plus four gold flecks. No
-// scatter storm.
+// Mythic atmosphere — only used when no scene category is assigned
+// (reserved-mythic slots before authoring). Four gold flecks scattered
+// in the upper sky, never in the corners.
 function mythicAtmosphere(scene, seedBase) {
   const rng = lcg(seedBase ^ 0xd0e0);
   const halo = '#f5df88';
   const accent = '#fff7e2';
   const out = [];
-  // Four gold flecks in the upper band only.
   let placed = 0;
   let safety = 40;
   while (placed < 4 && safety-- > 0) {
-    const x = 4 + pickInt(rng, CARD_FRONT_LOGICAL_W - 8);
-    const y = 4 + pickInt(rng, Math.max(1, DOG_LOGICAL_Y - 4));
+    const x = 8 + pickInt(rng, Math.max(1, CARD_FRONT_LOGICAL_W - 16));
+    const y = 6 + pickInt(rng, Math.max(1, DOG_LOGICAL_Y - 10));
     if (inDog(x, y)) continue;
     out.push(px(x, y, placed % 3 === 0 ? accent : halo));
-    placed++;
-  }
-  return out;
-}
-
-function mythicSparkleOverlay(scene, seedBase) {
-  const rng = lcg(seedBase ^ 0xfeed);
-  const accent = '#fff7e2';
-  const out = [];
-  // Two restrained sparkle dots in the upper canvas.
-  let placed = 0;
-  let safety = 20;
-  while (placed < 2 && safety-- > 0) {
-    const x = 4 + pickInt(rng, CARD_FRONT_LOGICAL_W - 8);
-    const y = 4 + pickInt(rng, Math.max(1, DOG_LOGICAL_Y - 4));
-    if (inDog(x, y)) continue;
-    out.push(px(x, y, accent));
     placed++;
   }
   return out;
@@ -386,17 +320,8 @@ function mythicInsertBurst(scene, seedBase) {
   return out;
 }
 
-function mythicInsertCornerPips(scene) {
-  const accent = '#fff7e2';
-  return [
-    px(2, 2, accent),
-    px(CARD_FRONT_LOGICAL_W - 3, 2, accent),
-    px(2, CARD_FRONT_LOGICAL_H - 3, accent),
-    px(CARD_FRONT_LOGICAL_W - 3, CARD_FRONT_LOGICAL_H - 3, accent)
-  ];
-}
-
-// Gold atmosphere — six gold flecks in the upper sky band. Quiet.
+// Gold atmosphere — six gold flecks scattered above the dog. Never
+// in the corners — the front carries no chrome.
 function goldAtmosphere(scene, seedBase) {
   const out = [];
   const gold = '#f5b500';
@@ -405,31 +330,11 @@ function goldAtmosphere(scene, seedBase) {
   let placed = 0;
   let safety = 40;
   while (placed < 6 && safety-- > 0) {
-    const x = 2 + pickInt(rng, CARD_FRONT_LOGICAL_W - 4);
-    const y = 2 + pickInt(rng, Math.max(1, DOG_LOGICAL_Y - 4));
+    const x = 8 + pickInt(rng, Math.max(1, CARD_FRONT_LOGICAL_W - 16));
+    const y = 6 + pickInt(rng, Math.max(1, DOG_LOGICAL_Y - 10));
     if (inDog(x, y)) continue;
     out.push(px(x, y, placed % 3 === 0 ? goldHi : gold));
     placed++;
-  }
-  return out;
-}
-
-function goldCornerOrnaments(scene) {
-  const gold = '#f5b500';
-  const out = [];
-  // 3×3 L-shaped ornament in each corner (filigree feel).
-  const corners = [
-    [1, 1, +1, +1],
-    [CARD_FRONT_LOGICAL_W - 2, 1, -1, +1],
-    [1, CARD_FRONT_LOGICAL_H - 2, +1, -1],
-    [CARD_FRONT_LOGICAL_W - 2, CARD_FRONT_LOGICAL_H - 2, -1, -1]
-  ];
-  for (const [cx, cy, dx, dy] of corners) {
-    out.push(px(cx, cy, gold));
-    out.push(px(cx + dx, cy, gold));
-    out.push(px(cx + dx * 2, cy, gold));
-    out.push(px(cx, cy + dy, gold));
-    out.push(px(cx, cy + dy * 2, gold));
   }
   return out;
 }
@@ -438,12 +343,13 @@ function holidayMotifPixels(parsed, scene, seedBase) {
   const motif = HOLIDAY_MOTIF[parsed.stampType] || HOLIDAY_MOTIF.valentine;
   const out = [];
   const rng = lcg(seedBase ^ 0x4011d);
-  // Six motif pixels in the upper sky band — restrained.
+  // Six motif pixels in the upper sky band — restrained, never in
+  // the corners.
   let placed = 0;
   let safety = 40;
   while (placed < 6 && safety-- > 0) {
-    const x = 2 + pickInt(rng, CARD_FRONT_LOGICAL_W - 4);
-    const y = 2 + pickInt(rng, Math.max(1, DOG_LOGICAL_Y - 4));
+    const x = 8 + pickInt(rng, Math.max(1, CARD_FRONT_LOGICAL_W - 16));
+    const y = 6 + pickInt(rng, Math.max(1, DOG_LOGICAL_Y - 10));
     if (inDog(x, y)) continue;
     out.push(px(x, y, placed % 3 === 0 ? motif.spark : motif.color));
     placed++;
@@ -487,35 +393,6 @@ function plateTintLayer(parsed, scene) {
     if (y % 2 === 0) {
       out.push(rectPx(0, y, CARD_FRONT_LOGICAL_W, 1, tint));
     }
-  }
-  return out;
-}
-
-// ─── Outer card edge + corner pips ───────────────────────────────
-
-function framePixels(parsed) {
-  const variant = parsed.variant;
-  const palette = FRAME_PALETTES[variant];
-  if (!palette) return [];
-  // Sharp 1-pixel-logical OUTER edge only. No inner accent rectangle
-  // (v1 traced a frame inside the card — too "UI", too "panel-like").
-  // Variants that earned them get discrete 2×2 corner pips, which
-  // never form a continuous boundary.
-  const w = CARD_FRONT_LOGICAL_W;
-  const h = CARD_FRONT_LOGICAL_H;
-  const out = [
-    rectPx(0, 0, w, 1, palette.color),
-    rectPx(0, h - 1, w, 1, palette.color),
-    rectPx(0, 0, 1, h, palette.color),
-    rectPx(w - 1, 0, 1, h, palette.color)
-  ];
-  if (palette.pips >= 2) {
-    out.push(rectPx(3, 3, 2, 2, palette.color));
-    out.push(rectPx(w - 5, 3, 2, 2, palette.color));
-  }
-  if (palette.pips >= 4) {
-    out.push(rectPx(3, h - 5, 2, 2, palette.color));
-    out.push(rectPx(w - 5, h - 5, 2, 2, palette.color));
   }
   return out;
 }
