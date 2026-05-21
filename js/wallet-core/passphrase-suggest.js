@@ -17,7 +17,7 @@ import { EFF_LARGE, EFF_LARGE_COUNT } from './diceware-eff-large.js';
  * @param {string} [separator='-']
  * @returns {string}
  */
-export function generatePassphrase(wordCount = 5, separator = '-') {
+export function generatePassphrase(wordCount = 5, separator = ' ') {
   if (!Number.isFinite(wordCount) || wordCount < 1 || wordCount > 16) {
     throw new RangeError('wordCount must be 1..16');
   }

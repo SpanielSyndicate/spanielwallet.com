@@ -19,11 +19,16 @@ const EYE_HIDE = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" st
  * Wrap a password input with a show/hide toggle button.
  *
  * @param {HTMLInputElement} input
- * @returns {() => void} detach handle — removes the wrap and restores
- *   the original parent/order. Rarely needed; safe to ignore.
+ * @returns {{ setRevealed: (b:boolean) => void, detach: () => void }}
+ *   Control handle. `setRevealed(true)` is used by the "Suggest one
+ *   for me" generator to force the freshly-filled phrase visible
+ *   so the user can memorize it. `detach` is rarely needed.
  */
 export function attachRevealToggle(input) {
-  if (!input || input.dataset.revealAttached === '1') return () => {};
+  if (!input) return { setRevealed: () => {}, detach: () => {} };
+  if (input.dataset.revealAttached === '1' && input._revealControl) {
+    return input._revealControl;
+  }
   input.dataset.revealAttached = '1';
 
   const wrap = document.createElement('div');
@@ -42,17 +47,23 @@ export function attachRevealToggle(input) {
   wrap.appendChild(btn);
 
   let revealed = false;
-  btn.addEventListener('click', () => {
-    revealed = !revealed;
+  function apply() {
     input.type = revealed ? 'text' : 'password';
     btn.setAttribute('aria-pressed', String(revealed));
     btn.setAttribute('aria-label', revealed ? 'Hide password' : 'Show password');
     btn.innerHTML = revealed ? EYE_HIDE : EYE_SHOW;
-  });
+  }
+  btn.addEventListener('click', () => { revealed = !revealed; apply(); });
 
-  return () => {
-    parent.insertBefore(input, wrap);
-    wrap.remove();
-    delete input.dataset.revealAttached;
+  const ctrl = {
+    setRevealed: (b) => { revealed = !!b; apply(); },
+    detach: () => {
+      parent.insertBefore(input, wrap);
+      wrap.remove();
+      delete input.dataset.revealAttached;
+      delete input._revealControl;
+    },
   };
+  input._revealControl = ctrl;
+  return ctrl;
 }

@@ -682,35 +682,6 @@ label.app-label {
   outline-offset: 2px;
 }
 
-.onboard-suggestion {
-  background: var(--panel-2);
-  border: 1px solid var(--soft-line);
-  padding: 10px 12px;
-  margin-top: 10px;
-}
-.onboard-suggestion-label {
-  color: var(--muted);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: 0 0 6px;
-}
-.onboard-suggestion-text {
-  display: block;
-  background: var(--bg);
-  border: 1px solid var(--soft-line);
-  padding: 8px 10px;
-  color: var(--ink);
-  font-size: 14px;
-  word-break: break-all;
-  user-select: all;
-}
-.onboard-suggestion-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-}
-
 .caps-warn {
   color: var(--accent-2);
   font-size: 12px;
