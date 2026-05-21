@@ -1,3 +1,5 @@
+import { COMMON_WORDS_RANK, COMMON_WORDS_COUNT } from './common-words.js';
+
 // Spaniel Wallet — passphrase strength estimator + hard floors.
 //
 // Estimates the "score" of a candidate passphrase the same way zxcvbn
@@ -159,7 +161,34 @@ export function scorePassphrase(passphrase, opts = {}) {
   if (hasSymbol) charset += 33; // approx printable ASCII symbol count
   if (charset === 0) charset = 1; // safety
   const log2Charset = Math.log2(charset);
-  let entropyBits = pw.length * log2Charset;
+
+  // ── Dictionary substring scan ─────────────────────────────────
+  // Greedy left-to-right longest-match. Each covered character
+  // contributes log2(2*rank) bits TOTAL for the matched word (the
+  // factor of 2 accounts for case variants). Uncovered characters
+  // get the full charset entropy. This is what kills the "whatever
+  // bro → 6000 years" embarrassment — common dictionary words
+  // contain almost no real entropy regardless of length.
+  const lowered = pw.toLowerCase();
+  const covered = new Uint8Array(pw.length);
+  const matches = [];
+  for (let i = 0; i < lowered.length; i++) {
+    let best = null;
+    const maxLen = Math.min(lowered.length - i, 24);
+    for (let len = maxLen; len >= 2; len--) {
+      const sub = lowered.slice(i, i + len);
+      const rank = COMMON_WORDS_RANK.get(sub);
+      if (rank) { best = { start: i, len, rank }; break; }
+    }
+    if (best) {
+      for (let j = best.start; j < best.start + best.len; j++) covered[j] = 1;
+      matches.push(best);
+      i += best.len - 1;
+    }
+  }
+  let entropyBits = 0;
+  for (const m of matches) entropyBits += Math.log2(Math.max(m.rank, 1) * 2);
+  for (let i = 0; i < pw.length; i++) if (!covered[i]) entropyBits += log2Charset;
 
   // ── Pattern penalties (zxcvbn-lite) ───────────────────────────
   // 1) Run of identical adjacent characters: each repeated char
