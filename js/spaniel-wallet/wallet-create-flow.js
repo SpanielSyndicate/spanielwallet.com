@@ -74,7 +74,7 @@ export async function mountCreateFlow(target, ctx, onComplete) {
       <p class="strength-meter-problem" data-strength-problem hidden></p>
       <p class="strength-meter-suggestion" data-strength-suggestion hidden></p>
 
-      <p class="onboard-hint">Long phrases beat clever passwords. Try <code>my niece named the dog rufus</code> or <code>Coffee@7am keeps me human!</code> — or <button class="onboard-link" type="button" data-suggest>let us suggest one</button>.</p>
+      <p class="onboard-hint">Long phrases beat clever passwords. Try <code>my niece named the dog rufus</code> or <code>Coffee@7am keeps me human!</code> — or <button class="onboard-link" type="button" data-suggest>suggest one for me</button>.</p>
 
       <label class="app-label" for="newPass2" style="margin-top: 12px">Confirm password</label>
       <input class="app-input" id="newPass2" name="pass2" type="password" autocomplete="new-password">
@@ -87,7 +87,7 @@ export async function mountCreateFlow(target, ctx, onComplete) {
     const passEl = content.querySelector('#newPass');
     const pass2El = content.querySelector('#newPass2');
     const passReveal = attachRevealToggle(passEl);
-    const pass2Reveal = attachRevealToggle(pass2El);
+    attachRevealToggle(pass2El);
     watchCapsLock(passEl);
     watchCapsLock(pass2El);
 
@@ -99,12 +99,13 @@ export async function mountCreateFlow(target, ctx, onComplete) {
     suggestBtn.addEventListener('click', () => {
       const phrase = generatePassphrase(5);
       passEl.value = phrase;
-      pass2El.value = phrase;
       passReveal.setRevealed(true);
-      pass2Reveal.setRevealed(true);
-      suggestBtn.textContent = 'try another';
+      suggestBtn.textContent = 'suggest another';
       refresh();
-      passEl.focus();
+      // Push the user to retype the phrase into Confirm — typing it
+      // out is the memorization step. Focus Confirm so they can
+      // start immediately.
+      pass2El.focus();
     });
     const nextBtn = content.querySelector('[data-next]');
     const meter = content.querySelector('[data-strength-meter]');

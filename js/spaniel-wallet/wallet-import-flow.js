@@ -112,7 +112,7 @@ export async function mountImportFlow(target, ctx, onComplete) {
       </div>
       <p class="strength-meter-caption" data-strength-caption></p>
       <p class="strength-meter-problem" data-strength-problem hidden></p>
-      <p class="onboard-hint">Long phrases beat clever passwords. Try <code>my niece named the dog rufus</code> or <code>Coffee@7am keeps me human!</code> — or <button class="onboard-link" type="button" data-suggest>let us suggest one</button>.</p>
+      <p class="onboard-hint">Long phrases beat clever passwords. Try <code>my niece named the dog rufus</code> or <code>Coffee@7am keeps me human!</code> — or <button class="onboard-link" type="button" data-suggest>suggest one for me</button>.</p>
       <label class="app-label" for="impPass2" style="margin-top: 12px">Confirm password</label>
       <input class="app-input" id="impPass2" type="password" autocomplete="new-password">
       <p class="strength-meter-problem" data-confirm-problem hidden></p>
@@ -125,19 +125,18 @@ export async function mountImportFlow(target, ctx, onComplete) {
     const pass = content.querySelector('#impPass');
     const pass2 = content.querySelector('#impPass2');
     const passReveal = attachRevealToggle(pass);
-    const pass2Reveal = attachRevealToggle(pass2);
+    attachRevealToggle(pass2);
     watchCapsLock(pass);
     watchCapsLock(pass2);
     const suggestBtn = content.querySelector('[data-suggest]');
     suggestBtn.addEventListener('click', () => {
       const phrase = generatePassphrase(5);
       pass.value = phrase;
-      pass2.value = phrase;
       passReveal.setRevealed(true);
-      pass2Reveal.setRevealed(true);
-      suggestBtn.textContent = 'try another';
+      suggestBtn.textContent = 'suggest another';
       refresh();
-      pass.focus();
+      // Retyping into Confirm is the memorization step.
+      pass2.focus();
     });
     const next = content.querySelector('[data-next]');
     const back = content.querySelector('[data-back]');
