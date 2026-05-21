@@ -21,6 +21,8 @@ import { scorePassphrase, scoreLabel } from '/js/wallet-core/passphrase-strength
 import { mountSrpReveal } from './srp-reveal.js';
 import { mountSrpQuiz } from './srp-quiz.js';
 import { attachRevealToggle } from './reveal-toggle.js';
+import { watchCapsLock } from './caps-lock-watch.js';
+import { generatePassphrase } from '/js/wallet-core/passphrase-suggest.js';
 
 const STEPS = ['Password', 'Learn', 'Reveal', 'Confirm', 'Done'];
 
@@ -72,7 +74,15 @@ export async function mountCreateFlow(target, ctx, onComplete) {
       <p class="strength-meter-problem" data-strength-problem hidden></p>
       <p class="strength-meter-suggestion" data-strength-suggestion hidden></p>
 
-      <p class="onboard-hint">Long phrases beat clever passwords. Try <code>my niece named the dog rufus</code>, <code>three-cats-eating-quiet-pizza</code>, or <code>Coffee@7am keeps me human!</code></p>
+      <p class="onboard-hint">Long phrases beat clever passwords. Try <code>my niece named the dog rufus</code> or <code>Coffee@7am keeps me human!</code> — or <button class="onboard-link" type="button" data-suggest>suggest one for me</button>.</p>
+      <div class="onboard-suggestion" data-suggestion hidden>
+        <p class="onboard-suggestion-label">Random 5-word phrase (64-bit entropy):</p>
+        <code class="onboard-suggestion-text" data-suggestion-text></code>
+        <div class="onboard-suggestion-actions">
+          <button class="app-btn" type="button" data-suggestion-reroll>Roll again</button>
+          <button class="app-btn app-btn-primary" type="button" data-suggestion-use>Use this password</button>
+        </div>
+      </div>
 
       <label class="app-label" for="newPass2" style="margin-top: 12px">Confirm password</label>
       <input class="app-input" id="newPass2" name="pass2" type="password" autocomplete="new-password">
@@ -86,6 +96,27 @@ export async function mountCreateFlow(target, ctx, onComplete) {
     const pass2El = content.querySelector('#newPass2');
     attachRevealToggle(passEl);
     attachRevealToggle(pass2El);
+    watchCapsLock(passEl);
+    watchCapsLock(pass2El);
+
+    // ── "Suggest one for me" — random 5-word EFF diceware phrase ──
+    const suggestBtn = content.querySelector('[data-suggest]');
+    const sugBox = content.querySelector('[data-suggestion]');
+    const sugText = content.querySelector('[data-suggestion-text]');
+    const sugReroll = content.querySelector('[data-suggestion-reroll]');
+    const sugUse = content.querySelector('[data-suggestion-use]');
+    function rollSuggestion() { sugText.textContent = generatePassphrase(5, '-'); }
+    suggestBtn.addEventListener('click', () => {
+      if (sugBox.hidden) { rollSuggestion(); sugBox.hidden = false; }
+      else sugBox.hidden = true;
+    });
+    sugReroll.addEventListener('click', rollSuggestion);
+    sugUse.addEventListener('click', () => {
+      passEl.value = sugText.textContent;
+      pass2El.value = sugText.textContent;
+      sugBox.hidden = true;
+      refresh();
+    });
     const nextBtn = content.querySelector('[data-next]');
     const meter = content.querySelector('[data-strength-meter]');
     const caption = content.querySelector('[data-strength-caption]');

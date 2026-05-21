@@ -13,6 +13,8 @@ import { importVault, saveVaultEnvelope, saveMeta } from '/js/wallet-core/vault.
 import { describeMnemonicProblem } from '/js/wallet-core/mnemonic.js';
 import { scorePassphrase, scoreLabel } from '/js/wallet-core/passphrase-strength.js';
 import { attachRevealToggle } from './reveal-toggle.js';
+import { watchCapsLock } from './caps-lock-watch.js';
+import { generatePassphrase } from '/js/wallet-core/passphrase-suggest.js';
 
 const STEPS = ['Paste', 'Password', 'Done'];
 
@@ -110,7 +112,15 @@ export async function mountImportFlow(target, ctx, onComplete) {
       </div>
       <p class="strength-meter-caption" data-strength-caption></p>
       <p class="strength-meter-problem" data-strength-problem hidden></p>
-      <p class="onboard-hint">Long phrases beat clever passwords. Try <code>my niece named the dog rufus</code>, <code>three-cats-eating-quiet-pizza</code>, or <code>Coffee@7am keeps me human!</code></p>
+      <p class="onboard-hint">Long phrases beat clever passwords. Try <code>my niece named the dog rufus</code> or <code>Coffee@7am keeps me human!</code> — or <button class="onboard-link" type="button" data-suggest>suggest one for me</button>.</p>
+      <div class="onboard-suggestion" data-suggestion hidden>
+        <p class="onboard-suggestion-label">Random 5-word phrase (64-bit entropy):</p>
+        <code class="onboard-suggestion-text" data-suggestion-text></code>
+        <div class="onboard-suggestion-actions">
+          <button class="app-btn" type="button" data-suggestion-reroll>Roll again</button>
+          <button class="app-btn app-btn-primary" type="button" data-suggestion-use>Use this password</button>
+        </div>
+      </div>
       <label class="app-label" for="impPass2" style="margin-top: 12px">Confirm password</label>
       <input class="app-input" id="impPass2" type="password" autocomplete="new-password">
       <p class="strength-meter-problem" data-confirm-problem hidden></p>
@@ -124,6 +134,26 @@ export async function mountImportFlow(target, ctx, onComplete) {
     const pass2 = content.querySelector('#impPass2');
     attachRevealToggle(pass);
     attachRevealToggle(pass2);
+    watchCapsLock(pass);
+    watchCapsLock(pass2);
+    // ── "Suggest one for me" ──────────────────────────────────────
+    const suggestBtn = content.querySelector('[data-suggest]');
+    const sugBox = content.querySelector('[data-suggestion]');
+    const sugText = content.querySelector('[data-suggestion-text]');
+    const sugReroll = content.querySelector('[data-suggestion-reroll]');
+    const sugUse = content.querySelector('[data-suggestion-use]');
+    function rollSuggestion() { sugText.textContent = generatePassphrase(5, '-'); }
+    suggestBtn.addEventListener('click', () => {
+      if (sugBox.hidden) { rollSuggestion(); sugBox.hidden = false; }
+      else sugBox.hidden = true;
+    });
+    sugReroll.addEventListener('click', rollSuggestion);
+    sugUse.addEventListener('click', () => {
+      pass.value = sugText.textContent;
+      pass2.value = sugText.textContent;
+      sugBox.hidden = true;
+      refresh();
+    });
     const next = content.querySelector('[data-next]');
     const back = content.querySelector('[data-back]');
     const meter = content.querySelector('[data-strength-meter]');

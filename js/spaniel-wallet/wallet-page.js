@@ -23,6 +23,7 @@ import { getExplorerTxLink, CLUSTERS } from '../lib/solana-networks.js';
 import { mountCreateFlow } from './wallet-create-flow.js';
 import { mountImportFlow } from './wallet-import-flow.js';
 import { attachRevealToggle } from './reveal-toggle.js';
+import { watchCapsLock } from './caps-lock-watch.js';
 import { ensureSiwsSession } from './siws.js';
 import { apiGetJson, ApiHttpError } from './api-fetch.js';
 
@@ -182,6 +183,7 @@ function renderUnlockPane(target, ctx) {
     </section>
   `;
   attachRevealToggle(target.querySelector('#unlockPass'));
+  watchCapsLock(target.querySelector('#unlockPass'));
   target.querySelector('#unlockForm').addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const err = target.querySelector('#unlockError');
